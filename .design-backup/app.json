@@ -1,0 +1,32 @@
+{
+  "expo": {
+    "name": "Grocery Admin",
+    "slug": "grocery-admin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFDF6"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.grocery.admin"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#FFFDF6"
+      },
+      "package": "com.grocery.admin"
+    },
+    "web": {
+      "favicon": "./assets/logo.png"
+    },
+    "plugins": [
+      "expo-status-bar"
+    ]
+  }
+}
