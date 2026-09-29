@@ -125,6 +125,8 @@ export default function LoginScreen({ navigation }) {
                 title="Sign in"
                 icon="log-in-outline"
                 variant="light"
+                square
+                loadingLabel="Signing in"
                 onPress={onSubmit}
                 loading={loading}
               />
