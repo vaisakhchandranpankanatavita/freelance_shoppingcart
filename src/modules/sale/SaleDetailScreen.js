@@ -127,7 +127,7 @@ export default function SaleDetailScreen({ route, navigation }) {
 function Chip({ icon, text }) {
   return (
     <View style={styles.chip}>
-      <Icon name={icon} size={12} color={colors.text} />
+      <Icon name={icon} size={12} color={colors.ink} />
       <Text style={styles.chipText}>{text}</Text>
     </View>
   );
@@ -155,12 +155,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.chip,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radius.pill,
   },
-  chipText: { color: colors.text, fontSize: 12, fontWeight: '600' },
+  chipText: { color: colors.ink, fontSize: 12, fontWeight: '600' },
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 6 },
   rowLabel: { color: colors.textMuted, fontSize: 14 },
   rowValueWrap: { flexDirection: 'row', alignItems: 'center' },

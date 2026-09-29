@@ -126,11 +126,11 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 24,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.chip,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: colors.text, fontSize: 30, fontWeight: '800' },
+  avatarText: { color: colors.ink, fontSize: 30, fontWeight: '800' },
   profileName: { fontSize: 30, fontWeight: '800', letterSpacing: -1, color: colors.ink, marginTop: spacing.xl },
   roleBadge: {
     flexDirection: 'row',

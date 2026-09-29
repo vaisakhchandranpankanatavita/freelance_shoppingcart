@@ -6,9 +6,10 @@ import Icon from './Icon';
 import { colors } from '../theme';
 import { spring } from '../theme/motion';
 
-const DOT = 52;
+const BAR = 18;
 
-// Floating graphite pill; a white disc springs to the focused tab.
+// Charcoal bar anchoring the light page: white icons, the focused one turns cyan and a short cyan
+// indicator springs underneath it.
 export default function TabBar({ state, descriptors, navigation, icons }) {
   const insets = useSafeAreaInsets();
   const [width, setWidth] = useState(0);
@@ -16,15 +17,15 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
   const x = useSharedValue(0);
 
   useEffect(() => {
-    x.value = withSpring(state.index * slot + (slot - DOT) / 2, spring);
+    x.value = withSpring(state.index * slot + (slot - BAR) / 2, spring);
   }, [state.index, slot]);
 
-  const dotStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
+  const barStyle = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));
 
   return (
-    <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
-      <View style={styles.bar} onLayout={(e) => setWidth(e.nativeEvent.layout.width - 12)}>
-        {width ? <Animated.View style={[styles.dot, dotStyle]} /> : null}
+    <View style={[styles.outer, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+      <View style={styles.bar} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+        {width ? <Animated.View style={[styles.indicator, barStyle]} /> : null}
         {state.routes.map((route, i) => {
           const focused = state.index === i;
           const { options } = descriptors[route.key];
@@ -44,8 +45,8 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
             >
               <Icon
                 name={focused ? icons[route.name][1] : icons[route.name][0]}
-                size={22}
-                color={focused ? colors.ink : colors.textMuted}
+                size={23}
+                color={focused ? colors.accent : colors.ink}
                 animate={focused}
               />
             </Pressable>
@@ -57,22 +58,16 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
 }
 
 const styles = StyleSheet.create({
-  outer: { backgroundColor: colors.bg, paddingHorizontal: 16, paddingTop: 8 },
-  bar: {
-    flexDirection: 'row',
-    height: 64,
-    padding: 6,
-    borderRadius: 999,
-    backgroundColor: colors.elevated2,
-  },
-  dot: {
+  outer: { backgroundColor: colors.card, paddingHorizontal: 12 },
+  bar: { flexDirection: 'row', height: 60 },
+  indicator: {
     position: 'absolute',
-    top: 6,
-    left: 6,
-    width: DOT,
-    height: DOT,
-    borderRadius: DOT / 2,
-    backgroundColor: colors.card,
+    bottom: 6,
+    left: 0,
+    width: BAR,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: colors.accent,
   },
   item: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 });

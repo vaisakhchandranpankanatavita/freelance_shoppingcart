@@ -125,7 +125,7 @@ export default function CheckoutScreen({ route, navigation }) {
           {mode === 'UPI' ? (
             <SectionCard icon="qr-code-outline" title="Scan to pay via UPI">
               <View style={styles.qrBox}>
-                <Icon name="qr-code" size={150} color={colors.ink} />
+                <Icon name="qr-code" size={150} color={colors.paperInk} />
                 <Text style={styles.qrStore}>{STORE_NAME}</Text>
                 <Text style={styles.qrUpi}>{STORE_UPI_ID}</Text>
                 <View style={styles.qrAmountPill}>
@@ -223,20 +223,20 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     padding: spacing.xl,
-    backgroundColor: colors.card,
+    backgroundColor: colors.paper,
     borderRadius: radius.xl,
     marginBottom: spacing.md,
   },
-  qrStore: { fontSize: 15, fontWeight: '800', color: colors.ink, marginTop: spacing.sm },
-  qrUpi: { fontSize: 12, color: colors.inkMuted, marginTop: 2 },
+  qrStore: { fontSize: 15, fontWeight: '800', color: colors.paperInk, marginTop: spacing.sm },
+  qrUpi: { fontSize: 12, color: colors.textFaint, marginTop: 2 },
   qrAmountPill: {
     marginTop: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: 6,
-    backgroundColor: colors.ink,
+    backgroundColor: colors.chip,
     borderRadius: radius.pill,
   },
-  qrAmountText: { color: colors.text, fontSize: 14, fontWeight: '800' },
+  qrAmountText: { color: colors.ink, fontSize: 14, fontWeight: '800' },
   option: {
     flexDirection: 'row',
     alignItems: 'center',

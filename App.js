@@ -13,7 +13,7 @@ export default function App() {
       <View style={styles.outer}>
         <View style={styles.frame}>
           <AuthProvider>
-            <StatusBar style="light" />
+            <StatusBar style="dark" />
             <RootNavigator />
           </AuthProvider>
         </View>

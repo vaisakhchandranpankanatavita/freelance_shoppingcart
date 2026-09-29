@@ -1,36 +1,57 @@
-// Design tokens — black canvas, white "paper" cards, dark pill controls and a
-// purple → pink → orange accent gradient (used sparingly for outlines & badges).
+// Design tokens — light page, charcoal cards: a soft grey canvas with white
+// rows/inputs, graphite "feature" cards (KPIs, chart, gauge), cyan for
+// interactive/active state and a green → cyan gradient for data.
 export const colors = {
-  // Canvas & dark surfaces
-  bg: '#000000',
-  elevated: '#121212',
-  elevated2: '#1C1C1E',
-  elevated3: '#2A2A2D',
-  line: '#232326',
+  // Light canvas & surfaces
+  bg: '#EEF1F5',
+  elevated: '#FFFFFF',
+  elevated2: '#E3E7EC',
+  elevated3: '#D7DCE3',
+  line: '#DCE1E7',
 
-  // Text on dark
-  text: '#FFFFFF',
-  textMuted: '#8E8E93',
-  textFaint: '#5B5B60',
+  // Text on the light canvas
+  text: '#1D1D23',
+  textMuted: '#6A6F7B',
+  textFaint: '#9CA2AD',
 
-  // Light "paper" cards
-  card: '#FFFFFF',
-  cardAlt: '#F2F3F3',
-  cardFade: '#D5DADA',
-  ink: '#0A0A0A',
-  inkMuted: '#6E6E73',
-  inkLine: '#E7E7EA',
+  // Charcoal cards ("ink" is text on a card)
+  card: '#2A2A30',
+  cardAlt: '#36363E',
+  cardFade: '#232328',
+  ink: '#FFFFFF',
+  inkMuted: '#9A9AA5',
+  inkLine: '#3A3A42',
+
+  // Chips / badges that sit on a card
+  chip: '#1E1E23',
+
+  // True white paper — only where contrast must be dark-on-white (QR codes)
+  paper: '#FFFFFF',
+  paperInk: '#0A0A0A',
+
+  // Accents
+  accent: '#1EB7EB',
+  accentStrong: '#0A7FB0', // cyan dark enough for text/outlines on the light canvas
+  green: '#1ED58A',
+  greenStrong: '#0B8A57', // green for text on the light canvas
 
   // Status
-  danger: '#FF453A',
-  success: '#30D158',
+  danger: '#F2484E',
+  success: '#1ED58A',
   warning: '#FFB020',
-  info: '#0A84FF',
+  info: '#1EB7EB',
 
-  gradient: ['#8B3DFF', '#FF2E93', '#FF9A1F'],
+  gradient: ['#1ED58A', '#1FC7B6', '#1EB7EB'],
 
   // Web presentation stage behind the phone frame
-  stage: '#1C9A96',
+  stage: '#2A2A30',
+};
+
+// Data tones: [start, end] of a waveform / gauge gradient, keyed by metric tone.
+export const tones = {
+  green: ['#1ED58A', '#1FC7B6'],
+  cyan: ['#1FC7B6', '#1EB7EB'],
+  red: ['#F2484E', '#FF7A59'],
 };
 
 export const spacing = {
@@ -43,16 +64,16 @@ export const spacing = {
 };
 
 export const radius = {
-  sm: 10,
-  md: 16,
-  lg: 24,
-  xl: 32,
+  sm: 8,
+  md: 12,
+  lg: 18,
+  xl: 24,
   pill: 999,
 };
 
 export const typography = {
   display: { fontSize: 40, lineHeight: 42, fontWeight: '800', letterSpacing: -1.6 },
-  title: { fontSize: 30, lineHeight: 34, fontWeight: '800', letterSpacing: -1 },
+  title: { fontSize: 28, lineHeight: 32, fontWeight: '800', letterSpacing: -0.8 },
   h2: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
   h3: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
   body: { fontSize: 15 },
@@ -61,4 +82,4 @@ export const typography = {
   button: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
 };
 
-export default { colors, spacing, radius, typography };
+export default { colors, tones, spacing, radius, typography };

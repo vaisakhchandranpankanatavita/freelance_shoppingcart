@@ -5,14 +5,15 @@ import Icon from './Icon';
 import { colors } from '../theme';
 import { spring } from '../theme/motion';
 
-const PAD = 4;
-
-// Pill tabs with a white thumb that springs between options.
-// options: [{ key, label, icon? }]
-export default function SegmentedControl({ options, value, onChange, style }) {
+// Borderless tabs with a cyan outlined thumb that springs between options.
+// tone: 'light' (on the light canvas) or 'dark' (inside a charcoal card).
+// options: [{ key, label, icon? }]; `compact` for inline toggles (Month / Year).
+export default function SegmentedControl({ options, value, onChange, style, compact = false, tone = 'light' }) {
+  const onDark = tone === 'dark';
+  const accent = onDark ? colors.accent : colors.accentStrong;
   const [width, setWidth] = useState(0);
   const index = Math.max(0, options.findIndex((o) => o.key === value));
-  const segment = width ? (width - PAD * 2) / options.length : 0;
+  const segment = width ? width / options.length : 0;
   const x = useSharedValue(0);
 
   useEffect(() => {
@@ -27,21 +28,25 @@ export default function SegmentedControl({ options, value, onChange, style }) {
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       accessibilityRole="tablist"
     >
-      {segment ? <Animated.View style={[styles.thumb, { width: segment }, thumbStyle]} /> : null}
+      {segment ? (
+        <Animated.View
+          style={[styles.thumb, compact && styles.thumbCompact, { width: segment, borderColor: accent }, thumbStyle]}
+        />
+      ) : null}
       {options.map((o) => {
         const active = o.key === value;
-        const fg = active ? colors.ink : colors.textMuted;
+        const fg = active ? accent : onDark ? colors.ink : colors.text;
         return (
           <Pressable
             key={o.key}
-            style={styles.item}
+            style={[styles.item, compact && styles.itemCompact]}
             onPress={() => onChange(o.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={o.label}
           >
             {o.icon ? <Icon name={o.icon} size={16} color={fg} /> : null}
-            <Text style={[styles.text, { color: fg }]} numberOfLines={1}>
+            <Text style={[styles.text, compact && styles.textCompact, { color: fg }]} numberOfLines={1}>
               {o.label}
             </Text>
           </Pressable>
@@ -52,20 +57,16 @@ export default function SegmentedControl({ options, value, onChange, style }) {
 }
 
 const styles = StyleSheet.create({
-  track: {
-    flexDirection: 'row',
-    backgroundColor: colors.elevated2,
-    borderRadius: 999,
-    padding: PAD,
-  },
+  track: { flexDirection: 'row' },
   thumb: {
     position: 'absolute',
-    top: PAD,
-    bottom: PAD,
-    left: PAD,
-    borderRadius: 999,
-    backgroundColor: colors.card,
+    top: 0,
+    bottom: 0,
+    left: 0,
+    borderRadius: 8,
+    borderWidth: 1.5,
   },
+  thumbCompact: { borderRadius: 6, borderWidth: 1 },
   item: {
     flex: 1,
     height: 44,
@@ -75,5 +76,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 6,
   },
-  text: { fontSize: 14, fontWeight: '700', letterSpacing: -0.2 },
+  itemCompact: { height: 30 },
+  text: { fontSize: 14, fontWeight: '600', letterSpacing: -0.1 },
+  textCompact: { fontSize: 13 },
 });

@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: colors.ink, fontSize: 18, fontWeight: '700' },
+  avatarText: { color: colors.bg, fontSize: 18, fontWeight: '700' },
   userName: { fontSize: 15, fontWeight: '700', color: colors.text },
   userRole: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   menuItem: {
