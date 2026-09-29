@@ -15,6 +15,7 @@ import Icon from '../../components/Icon';
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/PrimaryButton';
 import AuthHero from './AuthHero';
+import Receipt, { Perforation, ReceiptHeader } from './Receipt';
 import { colors, spacing } from '../../theme';
 import { enter } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
@@ -55,13 +56,16 @@ export default function SignUpScreen({ navigation }) {
       >
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <AuthHero
-            title="Sign Up"
-            switchLabel="Sign In"
+            title="Create account"
+            subtitle="Set up a staff login for this store."
+            switchLabel="Sign in"
             switchIcon="log-in-outline"
             onSwitch={() => navigation.navigate('Login')}
           />
 
-          <View style={styles.form}>
+          <Receipt style={styles.receipt}>
+            <ReceiptHeader title="New staff" />
+            <Perforation />
             <Animated.View entering={enter(3)}>
               <InputField label="Username" icon="person-outline" placeholder="Username" value={username} onChangeText={setUsername} />
             </Animated.View>
@@ -91,9 +95,15 @@ export default function SignUpScreen({ navigation }) {
                 </Text>
               </Pressable>
 
-              <PrimaryButton title="Create account" icon="person-add-outline" onPress={onSubmit} loading={loading} />
+              <PrimaryButton
+                title="Create account"
+                icon="person-add-outline"
+                variant="light"
+                onPress={onSubmit}
+                loading={loading}
+              />
             </Animated.View>
-          </View>
+          </Receipt>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -102,8 +112,8 @@ export default function SignUpScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { flexGrow: 1 },
-  form: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, paddingBottom: spacing.xxl },
+  scroll: { flexGrow: 1, paddingBottom: spacing.xxl },
+  receipt: { marginTop: -48 },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -29,7 +29,7 @@ export default function InputField({
   const ringStyle = useAnimatedStyle(() => ({
     borderColor: error
       ? colors.danger
-      : interpolateColor(focus.value, [0, 1], ['rgba(255,255,255,0)', 'rgba(255,255,255,0.85)']),
+      : interpolateColor(focus.value, [0, 1], ['rgba(10,127,176,0)', colors.accentStrong]),
   }));
 
   return (
