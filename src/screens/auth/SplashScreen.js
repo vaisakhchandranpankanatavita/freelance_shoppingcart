@@ -15,7 +15,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { colors } from '../../theme';
+import { colors, fonts } from '../../theme';
 import { spring } from '../../theme/motion';
 
 const DURATION = 2200;
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 56,
     lineHeight: 62,
-    fontWeight: '800',
+    fontFamily: fonts.display,
     letterSpacing: -2.4,
     includeFontPadding: false,
   },

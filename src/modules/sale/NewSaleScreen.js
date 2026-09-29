@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TextInput, Platform } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -16,7 +16,8 @@ import PressableScale from '../../components/PressableScale';
 import IconButton from '../../components/IconButton';
 import SegmentedControl from '../../components/SegmentedControl';
 import GradientBorder from '../../components/GradientBorder';
-import { colors, spacing, radius } from '../../theme';
+import { useFeedback } from '../../components/Feedback';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeIn, fadeOut, layout, pressSpring } from '../../theme/motion';
 import { getCatalog } from './services';
 
@@ -27,6 +28,8 @@ const DELIVERY_TYPES = [
 ];
 
 export default function NewSaleScreen({ navigation }) {
+  const { toast } = useFeedback();
+  const scroller = useRef(null);
   const [customer, setCustomer] = useState('');
   const [phone, setPhone] = useState('');
   const [delivery, setDelivery] = useState('pickup');
@@ -86,10 +89,18 @@ export default function NewSaleScreen({ navigation }) {
       nextErrors.phone = 'Phone number must be 10 digits';
     }
     if (cart.length === 0) {
-      nextErrors.cart = 'Please add atleast one product to cart';
+      nextErrors.cart = 'Add at least one product to the cart';
     }
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length > 0) return;
+    if (Object.keys(nextErrors).length > 0) {
+      toast({
+        tone: 'error',
+        title: 'Complete the bill first',
+        message: nextErrors.customer || nextErrors.phone || nextErrors.cart,
+      });
+      if (nextErrors.customer || nextErrors.phone) scroller.current?.scrollTo({ y: 0, animated: true });
+      return;
+    }
 
     navigation.navigate('Payment', {
       customer: customer.trim(),
@@ -106,7 +117,7 @@ export default function NewSaleScreen({ navigation }) {
     <Screen>
       <ScreenHeader title="New bill" onBack={() => navigation.goBack()} />
 
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scroller} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <Animated.Text entering={enter(0)} style={styles.sectionTitle}>Customer</Animated.Text>
         <Animated.View entering={enter(1)}>
           <InputField
@@ -220,7 +231,7 @@ export default function NewSaleScreen({ navigation }) {
             <Text style={styles.checkoutLabel}>{items} item{items === 1 ? '' : 's'}</Text>
             <Text style={styles.checkoutTotal}>₹{total.toLocaleString()}</Text>
           </View>
-          <PrimaryButton title="Generate bill" variant="dark" onPress={onCheckout} />
+          <PrimaryButton title="Generate bill" variant="light" onPress={onCheckout} />
         </View>
       </Animated.View>
     </Screen>
@@ -294,8 +305,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   cartName: { flex: 1, color: colors.ink, fontSize: 14, fontWeight: '600' },
-  qty: { minWidth: 22, textAlign: 'center', fontWeight: '800', color: colors.ink },
-  lineTotal: { minWidth: 60, textAlign: 'right', fontWeight: '800', color: colors.ink },
+  qty: { minWidth: 22, textAlign: 'center', fontFamily: fonts.display, color: colors.ink },
+  lineTotal: { minWidth: 60, textAlign: 'right', fontFamily: fonts.display, color: colors.ink },
   checkoutBar: {
     position: 'absolute',
     left: spacing.md,
@@ -324,7 +335,7 @@ const styles = StyleSheet.create({
   },
   cartBadge: { position: 'absolute', top: -6, right: -8 },
   cartBadgeInner: { minWidth: 22, height: 22, paddingHorizontal: 5, alignItems: 'center', justifyContent: 'center' },
-  cartBadgeText: { color: colors.text, fontSize: 10, fontWeight: '800' },
+  cartBadgeText: { color: colors.text, fontSize: 10, fontFamily: fonts.display },
   checkoutLabel: { fontSize: 12, color: colors.inkMuted },
-  checkoutTotal: { fontSize: 22, fontWeight: '800', letterSpacing: -0.6, color: colors.ink },
+  checkoutTotal: { fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.ink },
 });

@@ -5,7 +5,7 @@ import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
 import SectionCard from '../../components/SectionCard';
 import Heading from '../../components/Heading';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, fonts } from '../../theme';
 
 const DELIVERY_LABELS = {
   pickup: 'Store Pickup',
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
-  grandLabel: { fontSize: 16, fontWeight: '800', color: colors.text },
-  grandValue: { fontSize: 20, fontWeight: '800', color: colors.text },
+  grandLabel: { fontSize: 16, fontFamily: fonts.display, color: colors.text },
+  grandValue: { fontSize: 20, fontFamily: fonts.display, color: colors.text },
   empty: { textAlign: 'center', color: colors.textMuted, marginTop: spacing.xl },
 });

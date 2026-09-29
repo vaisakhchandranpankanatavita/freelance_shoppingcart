@@ -13,15 +13,17 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import InputField from '../../components/InputField';
+import { useFeedback } from '../../components/Feedback';
 import PrimaryButton from '../../components/PrimaryButton';
 import AuthHero from './AuthHero';
-import Receipt, { Perforation, ReceiptHeader } from './Receipt';
+import Receipt, { Perforation, ReceiptHeader } from '../../components/Receipt';
 import { colors, spacing } from '../../theme';
 import { enter } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
   const { signUp, loading } = useAuth();
+  const { toast } = useFeedback();
   const [username, setUsername] = useState('');
   const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
@@ -30,21 +32,21 @@ export default function SignUpScreen({ navigation }) {
 
   const onSubmit = async () => {
     if (!username || !loginId || !password) {
-      Alert.alert('Missing info', 'Please fill all fields.');
+      toast({ tone: 'error', title: 'Fill in every field', message: 'Username, Login ID and password are required.' });
       return;
     }
     if (password !== confirm) {
-      Alert.alert('Password mismatch', 'Passwords do not match.');
+      toast({ tone: 'error', title: "Passwords don't match", message: 'Type the same password in both fields.' });
       return;
     }
     if (!agree) {
-      Alert.alert('Terms', 'Please accept the Terms & Privacy Policy.');
+      toast({ tone: 'info', title: 'Accept the terms', message: 'Tick the box to create your account.' });
       return;
     }
     try {
       await signUp({ username, loginId, password });
     } catch (e) {
-      Alert.alert('Sign up failed', e.message);
+      toast({ tone: 'error', title: "Couldn't create the account", message: e.message });
     }
   };
 

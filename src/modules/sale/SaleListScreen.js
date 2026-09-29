@@ -8,7 +8,8 @@ import ScreenHeader from '../../components/ScreenHeader';
 import IconButton from '../../components/IconButton';
 import PressableScale from '../../components/PressableScale';
 import StatCard from '../../components/StatCard';
-import { colors, spacing, radius } from '../../theme';
+import EmptyState from '../../components/EmptyState';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, layout } from '../../theme/motion';
 import { getSales } from './services';
 
@@ -85,7 +86,15 @@ export default function SaleListScreen({ navigation }) {
             </PressableScale>
           </Animated.View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No sales yet.</Text>}
+        ListEmptyComponent={
+          <EmptyState
+            icon="receipt-outline"
+            title="No bills yet"
+            message="Bills you generate at the counter show up here."
+            actionLabel="New bill"
+            onAction={() => navigation.navigate('NewSale')}
+          />
+        }
       />
     </Screen>
   );
@@ -112,10 +121,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { fontSize: 18, fontWeight: '800', color: colors.ink },
+  avatarText: { fontSize: 18, fontFamily: fonts.display, color: colors.ink },
   customer: { fontSize: 16, fontWeight: '700', color: colors.text },
   sub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
   modeRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  total: { fontSize: 16, fontWeight: '800', color: colors.text },
+  total: { fontSize: 16, fontFamily: fonts.display, color: colors.text },
   empty: { textAlign: 'center', color: colors.textMuted, marginTop: spacing.xl },
 });

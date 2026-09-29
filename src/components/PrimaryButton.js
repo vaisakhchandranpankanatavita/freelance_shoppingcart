@@ -66,7 +66,7 @@ export default function PrimaryButton({
   icon,
   style,
 }) {
-  const fg = variant === 'light' ? colors.ink : colors.text;
+  const fg = variant === 'light' ? colors.onAccent : colors.text;
   let content;
   if (loading && loadingLabel) content = <SweepLoader label={loadingLabel} color={fg} />;
   else if (loading) content = <ActivityIndicator color={fg} />;

@@ -7,7 +7,7 @@ import PressableScale from '../components/PressableScale';
 import MetricCard from '../components/MetricCard';
 import LineChart from '../components/LineChart';
 import SegmentedControl from '../components/SegmentedControl';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
 import { useAuth } from '../context/AuthContext';
 import { metrics, statistic, topSelling } from '../data/dashboardData';
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
   },
-  title: { color: colors.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.6 },
+  title: { color: colors.text, fontSize: 26, fontFamily: fonts.display, letterSpacing: -0.6 },
   subtitle: { color: colors.text, fontSize: 14, marginTop: 4 },
   name: { color: colors.accentStrong, fontWeight: '700' },
 
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
 
   section: { paddingHorizontal: spacing.lg, marginTop: spacing.xl },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { color: colors.text, fontSize: 20, fontWeight: '700', letterSpacing: -0.4 },
+  sectionTitle: { color: colors.text, fontSize: 21, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
   onCard: { color: colors.ink },
   toggle: { width: 128 },
   panel: {

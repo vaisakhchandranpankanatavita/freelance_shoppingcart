@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import Svg, { Line, Path, Rect } from 'react-native-svg';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fonts } from '../theme';
 
 export const mono = Platform.select({
   ios: 'Menlo',
@@ -118,6 +118,6 @@ const styles = StyleSheet.create({
   perf: { height: 2, marginVertical: spacing.lg },
   barcode: { alignItems: 'center' },
   header: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  store: { color: colors.paperInk, fontSize: 22, fontWeight: '800', letterSpacing: -0.5 },
+  store: { color: colors.paperInk, fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.5 },
   stamp: { color: colors.textMuted, fontSize: 11, fontFamily: mono },
 });

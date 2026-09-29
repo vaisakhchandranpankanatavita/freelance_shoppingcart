@@ -6,7 +6,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
 import IconButton from '../../components/IconButton';
-import { colors, spacing, radius } from '../../theme';
+import EmptyState from '../../components/EmptyState';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { getStockItems } from './services';
 
@@ -15,13 +16,16 @@ export default function StockListScreen({ navigation }) {
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [loaded, setLoaded] = useState(false);
 
   const load = async () => {
     try {
       setItems(await getStockItems());
       setError('');
     } catch (e) {
-      setError(e.message || 'Could not load stock.');
+      setError(e.message || 'Check your connection and try again.');
+    } finally {
+      setLoaded(true);
     }
   };
 
@@ -125,9 +129,26 @@ export default function StockListScreen({ navigation }) {
           );
         }}
         ListEmptyComponent={
-          <Text style={[styles.empty, error && { color: colors.danger }]}>
-            {error || 'No items match your search.'}
-          </Text>
+          !loaded ? null : error ? (
+            <EmptyState
+              tone="error"
+              icon="cloud-offline-outline"
+              title="Can't load stock"
+              message={error}
+              actionLabel="Try again"
+              onAction={onRefresh}
+            />
+          ) : search ? (
+            <EmptyState icon="search-outline" title="No matches" message={`Nothing in stock matches "${search}".`} />
+          ) : (
+            <EmptyState
+              icon="cube-outline"
+              title="No stock yet"
+              message="Add your first item to start tracking inventory."
+              actionLabel="Add item"
+              onAction={() => navigation.navigate('AddStock')}
+            />
+          )
         }
       />
     </Screen>
@@ -148,9 +169,9 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   tileLight: { backgroundColor: colors.card, borderColor: colors.card },
-  tileValue: { fontSize: 22, fontWeight: '800', letterSpacing: -0.6, color: colors.text },
+  tileValue: { fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.text },
   tileLabel: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  tileValueInk: { fontSize: 22, fontWeight: '800', letterSpacing: -0.6, color: colors.ink },
+  tileValueInk: { fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.ink },
   tileLabelInk: { fontSize: 12, color: colors.inkMuted, marginTop: 2 },
   searchBox: {
     flexDirection: 'row',
