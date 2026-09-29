@@ -5,6 +5,7 @@ import Animated, {
   cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
@@ -32,28 +33,9 @@ function Tag({ x, y, price }) {
   );
 }
 
-// Two illustrated grocery shelves (viewBox 400×210) swept by a barcode-scanner beam.
-export default function ShelfScene({ height = 210 }) {
-  const [width, setWidth] = useState(0);
-  const t = useSharedValue(0);
-
-  useEffect(() => {
-    t.value = withRepeat(withTiming(1, { duration: 2800, easing: Easing.inOut(Easing.sin) }), -1, true);
-    return () => cancelAnimation(t);
-  }, []);
-
-  const beamStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: -BEAM / 2 + t.value * width }],
-  }));
-
+function Upper() {
   return (
-    <View
-      style={{ height }}
-      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-    >
-      <Svg width="100%" height="100%" viewBox="0 0 400 210" preserveAspectRatio="xMidYMax slice">
+    <>
         {/* Upper shelf */}
         {/* Honey jar */}
         <Rect x={22} y={40} width={34} height={10} rx={3} fill={SHADE} />
@@ -108,7 +90,13 @@ export default function ShelfScene({ height = 210 }) {
         <Tag x={137} y={106} price="₹48" />
         <Tag x={200} y={106} price="₹185" />
         <Tag x={318} y={106} price="₹120" />
+    </>
+  );
+}
 
+function Lower() {
+  return (
+    <>
         {/* Lower shelf */}
         {/* Bread loaf */}
         <Path d="M16 196 V168 Q16 150 40 150 H74 Q98 150 98 168 V196 Z" fill="#D89A4E" />
@@ -142,6 +130,72 @@ export default function ShelfScene({ height = 210 }) {
         ))}
         <Rect x={0} y={196} width={400} height={14} fill={PLANK} />
         <Rect x={0} y={196} width={400} height={1.5} fill={EDGE} />
+    </>
+  );
+}
+
+// Two illustrated grocery shelves (viewBox 400×210). Default: swept by a barcode-scanner
+// beam. `reveal`: no beam — the shelves glide in from opposite sides, then drift gently.
+export default function ShelfScene({ height = 210, reveal = false }) {
+  const [width, setWidth] = useState(0);
+  const t = useSharedValue(0);
+  const enter = useSharedValue(0);
+
+  useEffect(() => {
+    if (reveal) {
+      enter.value = withDelay(1300, withTiming(1, { duration: 1500, easing: Easing.out(Easing.cubic) }));
+      t.value = withDelay(
+        2800,
+        withRepeat(withTiming(1, { duration: 2600, easing: Easing.inOut(Easing.sin) }), -1, true)
+      );
+    } else {
+      t.value = withRepeat(withTiming(1, { duration: 2800, easing: Easing.inOut(Easing.sin) }), -1, true);
+    }
+    return () => {
+      cancelAnimation(t);
+      cancelAnimation(enter);
+    };
+  }, [reveal]);
+
+  const beamStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: -BEAM / 2 + t.value * width }],
+  }));
+  const upperStyle = useAnimatedStyle(() => ({
+    opacity: enter.value,
+    transform: [{ translateX: (1 - enter.value) * -90 }, { translateY: t.value * -3 }],
+  }));
+  const lowerStyle = useAnimatedStyle(() => ({
+    opacity: enter.value,
+    transform: [{ translateX: (1 - enter.value) * 90 }, { translateY: t.value * 3 }],
+  }));
+
+  if (reveal) {
+    return (
+      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Animated.View style={upperStyle}>
+          <Svg width="100%" height={120} viewBox="0 0 400 120" preserveAspectRatio="xMidYMax slice">
+            <Upper />
+          </Svg>
+        </Animated.View>
+        <Animated.View style={lowerStyle}>
+          <Svg width="100%" height={90} viewBox="0 120 400 90" preserveAspectRatio="xMidYMax slice">
+            <Lower />
+          </Svg>
+        </Animated.View>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={{ height }}
+      onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+    >
+      <Svg width="100%" height="100%" viewBox="0 0 400 210" preserveAspectRatio="xMidYMax slice">
+        <Upper />
+        <Lower />
       </Svg>
 
       {width ? (

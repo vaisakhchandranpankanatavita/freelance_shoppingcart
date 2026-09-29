@@ -1,23 +1,21 @@
-// Design tokens — light page, charcoal cards: a sage-mint canvas with a faint diagonal hatch with white
+// Design tokens — light page, charcoal cards: a cream → grey-cyan gradient canvas with white
 // rows/inputs, graphite "feature" cards (KPIs, chart, gauge), cyan for
 // interactive/active state and a green → cyan gradient for data.
-import { Platform } from 'react-native';
-
-// The phone app is plain white; the web presentation keeps the sage canvas.
-const web = Platform.OS === 'web';
-
+// One soft mint-cyan canvas everywhere (phone and web) so white rows/inputs lift off it
+// and it sits between the green → cyan accents and the charcoal cards.
 export const colors = {
   // Light canvas & surfaces
-  bg: web ? '#D6E6DA' : '#FFFFFF',
+  bg: '#EEEEEA', // midpoint of bgGradient: solid fallback behind the gradient / scene flashes
+  bgGradient: ['#FFF6E9', '#DCE6EB'], // cream → grey-cyan, drawn at 135° by PatternBackground
   elevated: '#FFFFFF',
-  elevated2: web ? '#C3D6C9' : '#F0F2F5',
-  elevated3: web ? '#B3C9BA' : '#E3E7EC',
-  line: web ? '#BDD0C3' : '#E3E7EC',
+  elevated2: '#E6E8E4',
+  elevated3: '#D6DBDB',
+  line: '#DDE2E1',
 
   // Text on the light canvas
   text: '#1D1D23',
-  textMuted: web ? '#4E6155' : '#5B616E',
-  textFaint: web ? '#6A7F72' : '#8A909B',
+  textMuted: '#56646A',
+  textFaint: '#7A878C',
 
   // Charcoal cards ("ink" is text on a card)
   card: '#2A2A30',
