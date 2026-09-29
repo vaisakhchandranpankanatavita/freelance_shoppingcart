@@ -21,7 +21,7 @@ const theme = {
   },
 };
 
-const LOADER_MS = 2200;
+const LOADER_MS = 3800; // 1.7s hero → "O" merge, then the O spins
 
 export default function RootNavigator() {
   const { user } = useAuth();
@@ -36,8 +36,9 @@ export default function RootNavigator() {
   }, [user?.id]);
   return (
     <NavigationContainer theme={theme}>
-      {/* Keyed so signing in/out cross-fades between the auth and app trees. */}
-      <Animated.View key={user ? 'app' : 'auth'} entering={fadeIn()} style={styles.fill}>
+      {/* Keyed so signing in/out cross-fades between the auth and app trees. Sign-in skips
+          the fade: the loader opens on the same hero as Sign in, so there is no cut to hide. */}
+      <Animated.View key={user ? 'app' : 'auth'} entering={loading ? undefined : fadeIn()} style={styles.fill}>
         {user ? <MainTabNavigator /> : <AuthNavigator />}
         {loading ? <LoginLoader name={user.name} duration={LOADER_MS} /> : null}
       </Animated.View>
