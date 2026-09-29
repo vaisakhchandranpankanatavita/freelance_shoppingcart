@@ -125,7 +125,8 @@ export default function LoginScreen({ navigation }) {
                 title="Sign in"
                 icon="log-in-outline"
                 variant="light"
-                square
+                compact
+                style={styles.signIn}
                 loadingLabel="Signing in"
                 onPress={onSubmit}
                 loading={loading}
@@ -151,6 +152,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, paddingBottom: spacing.xxl },
   receipt: { marginTop: -48 },
   segment: { marginBottom: spacing.lg },
+  signIn: { alignSelf: 'center' },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',
