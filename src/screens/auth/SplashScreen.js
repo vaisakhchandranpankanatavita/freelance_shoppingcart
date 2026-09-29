@@ -25,6 +25,7 @@ const WORDMARK = 'grocery';
 // so the Login screen fades in around them.
 export default function SplashScreen({ navigation }) {
   const insets = useSafeAreaInsets();
+  const rootRef = useRef(null);
   const sceneRef = useRef(null);
   const measureRef = useRef(null);
   const sceneDy = useSharedValue(0);
@@ -53,9 +54,13 @@ export default function SplashScreen({ navigation }) {
   }, []);
 
   // How far the shelves must travel from where they rest to where Login draws them.
+  // Both measurements are in window coordinates, so subtracting the splash root's own offset makes
+  // the target frame-relative — on desktop web the phone frame sits below the window top.
   const measureScene = () =>
-    sceneRef.current?.measureInWindow((_x, y) => {
-      sceneDy.value = insets.top + AUTH_SHELF_TOP - y;
+    rootRef.current?.measureInWindow((_rx, rootY) => {
+      sceneRef.current?.measureInWindow((_x, y) => {
+        sceneDy.value = rootY + insets.top + AUTH_SHELF_TOP - y;
+      });
     });
   measureRef.current = measureScene;
 
@@ -78,6 +83,7 @@ export default function SplashScreen({ navigation }) {
 
   return (
     <SafeAreaView
+      ref={rootRef}
       style={styles.container}
       accessible
       accessibilityRole="progressbar"

@@ -79,30 +79,31 @@ export default function DashboardScreen({ navigation }) {
 
   return (
     <Screen>
+      {/* Top bar sits outside the scroll view so it stays pinned while the content moves. */}
+      <Animated.View entering={enter(0)} style={styles.header}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title} accessibilityRole="header">
+            Store Dashboard
+          </Text>
+          <Text style={styles.subtitle}>
+            {greeting()} <Text style={styles.name}>{user?.name || 'Admin'}!</Text>
+          </Text>
+        </View>
+        <Pressable
+          onPress={() => navigation.navigate('More')}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Menu"
+        >
+          <Icon name="reorder-two-outline" size={28} color={colors.text} />
+        </Pressable>
+      </Animated.View>
+
       <Animated.ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       >
-        <Animated.View entering={enter(0)} style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.title} accessibilityRole="header">
-              Store Dashboard
-            </Text>
-            <Text style={styles.subtitle}>
-              {greeting()} <Text style={styles.name}>{user?.name || 'Admin'}!</Text>
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => navigation.navigate('More')}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Menu"
-          >
-            <Icon name="reorder-two-outline" size={28} color={colors.text} />
-          </Pressable>
-        </Animated.View>
-
         {cardW ? (
           <Animated.ScrollView
             ref={carouselRef}

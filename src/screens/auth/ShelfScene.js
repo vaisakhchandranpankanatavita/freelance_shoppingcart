@@ -216,7 +216,7 @@ export function ShelfFixtures({ group }) {
   );
 }
 
-const Shelf = ({ group }) => (
+export const Shelf = ({ group }) => (
   <>
     {SHELF_ITEMS.filter((i) => i.group === group).map((item, n) => (
       <item.Art key={n} />

@@ -1,23 +1,25 @@
-import React, { useEffect, useMemo } from 'react';
-import { StyleSheet, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuthHero, { AUTH_SHELF_TOP } from '../screens/auth/AuthHero';
-import { SHELF_ITEMS, ShelfItem, shelfFit } from '../screens/auth/ShelfScene';
+import { SCENE_H, Shelf, shelfFit } from '../screens/auth/ShelfScene';
 import { colors } from '../theme';
 import { fadeOut } from '../theme/motion';
 
-const MERGE = 1600; // products lift off the shelves and gather into the ring
-const REV = 1300; // one fast, smooth revolution of the ring
-const RADIUS = 64;
-const END_SCALE = 0.36; // how small each product ends up in the ring
-const N = SHELF_ITEMS.length;
+const RAMP = 0.9; // seconds for the rows to reach full speed
+const SPEED = { upper: 210, lower: 290 }; // px/s, both rightwards; the lower row is quicker for depth
+const GLIDE = 1100; // ms the shelves take to travel from the Sign in hero to the screen centre
+const SPLIT = 26; // px each row drifts away from the other while it travels
+const UPPER_H = 120; // scene units: the upper shelf is the top 120 of the 400×210 artwork
+const LOWER_H = SCENE_H - UPPER_H;
 
 const smooth = (x) => {
   'worklet';
@@ -25,81 +27,65 @@ const smooth = (x) => {
   return c * c * (3 - 2 * c);
 };
 
-// One product from the shelf: starts exactly where Sign in draws it, then glides to its slot on
-// a ring around the screen centre. The slot keeps orbiting (`spin`), so the products chase it
-// and end up rotating quickly and smoothly as one wheel.
-function Bead({ item, size, from, centre, angle, rank, p, spin }) {
-  const [, , w, h] = item.box;
-  const style = useAnimatedStyle(() => {
-    const e = smooth((p.value - 0.04 - rank * 0.012) / 0.6);
-    const a = angle + spin.value * 2 * Math.PI;
-    const toX = centre.x + RADIUS * Math.cos(a);
-    const toY = centre.y + RADIUS * Math.sin(a);
-    return {
-      transform: [
-        { translateX: from.x + (toX - from.x) * e - (w * size) / 2 },
-        { translateY: from.y + (toY - from.y) * e - Math.sin(Math.PI * e) * 30 - (h * size) / 2 },
-        { rotate: `${(a + Math.PI / 2) * e}rad` },
-        { scale: 1 - (1 - END_SCALE) * e },
-      ],
-    };
-  });
+// Distance a row has flowed after `t` seconds: eases up to full speed, then constant.
+const travelled = (t, v) => {
+  'worklet';
+  return t < RAMP ? (v * t * t) / (2 * RAMP) : v * (t - RAMP / 2);
+};
+
+// One shelf of the Sign in artwork, drawn twice side by side so it can slide right forever:
+// when it has moved one width, the second copy sits exactly where the first started.
+function Row({ group, width, height, viewBox, clock, glide, split }) {
+  const v = SPEED[group];
+  const style = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: (travelled(clock.value, v) % width) - width },
+      { translateY: glide.value * split },
+    ],
+  }));
   return (
-    <Animated.View style={[styles.bead, { width: w * size, height: h * size }, style]}>
-      <ShelfItem item={item} scale={size} />
+    <Animated.View style={[styles.row, { width: width * 2, height }, style]}>
+      {[0, 1].map((k) => (
+        <Svg key={k} width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMax slice">
+          <Shelf group={group} />
+        </Svg>
+      ))}
     </Animated.View>
   );
 }
 
-// Post-login loader that continues the Sign in hero on the same charcoal: the title and empty
-// shelves fade, every product lifts off separately and gathers into a ring around the screen
-// centre, and the ring spins as the loading indicator. No text.
-export default function LoginLoader() {
-  const { width, height } = useWindowDimensions();
+// Post-login transition built from the Sign in hero itself: the title and brand fade, then the
+// very same two shelves lift off, glide to the middle of the screen and slide to the right as
+// endless loops until the app is ready. Progress runs along the bottom, as on the splash.
+export default function LoginLoader({ duration = 3600 }) {
+  // Sized from its own layout, not the window: on desktop web the app sits in a narrow phone frame.
+  const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
   const insets = useSafeAreaInsets();
-  const p = useSharedValue(0); // gather progress 0→1
-  const spin = useSharedValue(0); // ring revolutions
-
-  const centre = useMemo(() => ({ x: width / 2, y: height / 2 }), [width, height]);
-
-  // Each product's start (as Sign in draws it) and slot on the ring, ordered by where it starts
-  // so the paths fan out rather than cross; nearest products leave first.
-  const beads = useMemo(() => {
-    const { s, tx, ty } = shelfFit(width);
-    const top = insets.top + AUTH_SHELF_TOP;
-    const list = SHELF_ITEMS.map((item, i) => {
-      const [x, y, w, h] = item.box;
-      const from = { x: tx + (x + w / 2) * s, y: top + ty + (y + h / 2) * s };
-      return {
-        item,
-        i,
-        from,
-        size: s,
-        ang: Math.atan2(from.y - centre.y, from.x - centre.x),
-        dist: Math.hypot(from.x - centre.x, from.y - centre.y),
-      };
-    });
-    [...list].sort((a, b) => a.dist - b.dist).forEach((b, r) => (b.rank = r));
-    [...list]
-      .sort((a, b) => a.ang - b.ang)
-      .forEach((b, k) => (b.angle = -Math.PI + (2 * Math.PI * (k + 0.5)) / N));
-    return list;
-  }, [centre, width, insets.top]);
+  const clock = useSharedValue(0); // seconds since the loader opened
+  const glide = useSharedValue(0); // 0 = Sign in position, 1 = screen centre
+  const progress = useSharedValue(0);
 
   useEffect(() => {
-    p.value = withTiming(1, { duration: MERGE, easing: Easing.linear });
-    spin.value = withRepeat(withTiming(1, { duration: REV, easing: Easing.linear }), -1);
+    clock.value = withTiming((duration + 2000) / 1000, { duration: duration + 2000, easing: Easing.linear });
+    glide.value = withTiming(1, { duration: GLIDE, easing: Easing.inOut(Easing.cubic) });
+    progress.value = withTiming(1, { duration, easing: Easing.inOut(Easing.cubic) });
   }, []);
 
-  const heroStyle = useAnimatedStyle(() => ({
-    opacity: 1 - smooth((p.value - 0.04) / 0.4),
-    transform: [{ translateY: -smooth((p.value - 0.04) / 0.4) * 12 }],
-  }));
+  const { s, ty } = shelfFit(width || 1);
+  const top = insets.top + AUTH_SHELF_TOP; // where Sign in draws the shelves
+  const upperH = UPPER_H * s;
+  const lowerH = LOWER_H * s;
+  const travel = height / 2 - (top + (upperH + lowerH) / 2 + ty);
+
+  const heroStyle = useAnimatedStyle(() => ({ opacity: 1 - smooth(glide.value / 0.35) }));
+  const stageStyle = useAnimatedStyle(() => ({ transform: [{ translateY: glide.value * travel }] }));
+  const progressStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
 
   return (
     <Animated.View
       exiting={fadeOut}
       style={styles.fill}
+      onLayout={(e) => setSize(e.nativeEvent.layout)}
       accessibilityRole="progressbar"
       accessibilityLabel="Signing you in"
     >
@@ -115,20 +101,26 @@ export default function LoginLoader() {
         />
       </Animated.View>
 
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {beads.map((b) => (
-          <Bead
-            key={b.i}
-            item={b.item}
-            size={b.size}
-            from={b.from}
-            centre={centre}
-            angle={b.angle}
-            rank={b.rank}
-            p={p}
-            spin={spin}
+      {width ? (
+        <Animated.View style={[styles.stage, { top: top + ty, width, height: upperH + lowerH }, stageStyle]} pointerEvents="none">
+          <View style={{ width, height: upperH, overflow: 'hidden' }}>
+            <Row group="upper" width={width} height={upperH} viewBox={`0 0 400 ${UPPER_H}`} clock={clock} glide={glide} split={-SPLIT} />
+          </View>
+          <View style={{ width, height: lowerH, overflow: 'hidden' }}>
+            <Row group="lower" width={width} height={lowerH} viewBox={`0 ${UPPER_H} 400 ${LOWER_H}`} clock={clock} glide={glide} split={SPLIT} />
+          </View>
+        </Animated.View>
+      ) : null}
+
+      <View style={styles.progressTrack} pointerEvents="none">
+        <Animated.View style={[styles.progressFill, progressStyle]}>
+          <LinearGradient
+            colors={colors.gradient}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFill}
           />
-        ))}
+        </Animated.View>
       </View>
     </Animated.View>
   );
@@ -136,7 +128,20 @@ export default function LoginLoader() {
 
 const styles = StyleSheet.create({
   // Same charcoal as the Sign in hero, so the hand-off is one continuous surface.
-  fill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.card },
+  fill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.card, overflow: 'hidden' },
   hero: { position: 'absolute', top: 0, left: 0, right: 0 },
-  bead: { position: 'absolute', top: 0, left: 0 },
+  stage: { position: 'absolute', left: 0 },
+  row: { flexDirection: 'row' },
+  progressTrack: {
+    position: 'absolute',
+    bottom: 40,
+    left: '50%',
+    marginLeft: -60,
+    width: 120,
+    height: 3,
+    borderRadius: 999,
+    backgroundColor: colors.inkLine,
+    overflow: 'hidden',
+  },
+  progressFill: { height: '100%', borderRadius: 999, overflow: 'hidden' },
 });
