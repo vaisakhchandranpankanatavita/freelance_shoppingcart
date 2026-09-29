@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import PressableScale from '../../components/PressableScale';
 import ShelfScene from './ShelfScene';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 
 // Shared top of Sign In / Sign Up: a charcoal store aisle with a scanner beam
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     color: colors.ink,
     fontSize: 34,
     lineHeight: 38,
-    fontWeight: '800',
+    fontFamily: fonts.display,
     letterSpacing: -1,
     paddingHorizontal: spacing.xl,
     marginTop: spacing.xl,

@@ -7,7 +7,7 @@ import PressableScale from '../components/PressableScale';
 import MetricCard from '../components/MetricCard';
 import LineChart from '../components/LineChart';
 import SegmentedControl from '../components/SegmentedControl';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
 import { useAuth } from '../context/AuthContext';
 import { metrics, statistic, topSelling } from '../data/dashboardData';
@@ -110,7 +110,7 @@ export default function DashboardScreen({ navigation }) {
             />
           </View>
           <View style={styles.chart}>
-            <LineChart series={statistic[period]} />
+            <LineChart series={statistic[period]} height={140} />
           </View>
         </Animated.View>
 
@@ -129,7 +129,7 @@ export default function DashboardScreen({ navigation }) {
               }
             >
               <View style={styles.shortcutRing}>
-                <Icon name={s.icon} size={22} color={colors.accentStrong} />
+                <Icon name={s.icon} size={20} color={colors.accentStrong} />
               </View>
               <Text style={styles.shortcutLabel} numberOfLines={1}>
                 {s.label}
@@ -159,73 +159,73 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: spacing.xxl },
+  scroll: { paddingBottom: spacing.xl },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
+    paddingTop: spacing.md,
   },
-  title: { color: colors.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.6 },
-  subtitle: { color: colors.text, fontSize: 14, marginTop: 4 },
+  title: { color: colors.text, fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.5 },
+  subtitle: { color: colors.text, fontSize: 13, marginTop: 2 },
   name: { color: colors.accentStrong, fontWeight: '700' },
 
-  carousel: { marginTop: spacing.xl },
-  carouselContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, gap: GAP },
-  carouselPlaceholder: { height: 236, marginTop: spacing.xl },
+  carousel: { marginTop: spacing.md },
+  carouselContent: { paddingHorizontal: spacing.lg, paddingVertical: 4, gap: GAP },
+  carouselPlaceholder: { height: 150, marginTop: spacing.md },
 
-  section: { paddingHorizontal: spacing.lg, marginTop: spacing.xl },
+  section: { paddingHorizontal: spacing.lg, marginTop: spacing.lg },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { color: colors.text, fontSize: 20, fontWeight: '700', letterSpacing: -0.4 },
+  sectionTitle: { color: colors.text, fontSize: 18, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
   onCard: { color: colors.ink },
   toggle: { width: 128 },
   panel: {
     marginHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    padding: spacing.lg,
+    marginTop: spacing.md,
+    padding: spacing.md,
     borderRadius: radius.md,
     backgroundColor: colors.card,
   },
-  chart: { marginTop: spacing.md },
+  chart: { marginTop: spacing.sm },
 
   shortcuts: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
   shortcut: { alignItems: 'center', width: 72 },
   shortcutRing: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     borderWidth: 1.5,
     borderColor: colors.line,
     backgroundColor: colors.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  shortcutLabel: { color: colors.text, fontSize: 12, fontWeight: '500', marginTop: spacing.sm },
+  shortcutLabel: { color: colors.text, fontSize: 11, fontWeight: '500', marginTop: 6 },
 
   product: {
     flexDirection: 'row',
     alignItems: 'center',
     marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    padding: spacing.md,
+    marginTop: spacing.sm,
+    padding: 10,
     borderRadius: 8,
     backgroundColor: colors.elevated,
   },
   productIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 1.5,
     borderColor: colors.greenStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  productName: { color: colors.text, fontSize: 15, fontWeight: '600' },
+  productName: { color: colors.text, fontSize: 14, fontWeight: '600' },
   productMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
   productProfit: { color: colors.greenStrong, fontSize: 14, fontWeight: '700' },
 });

@@ -61,11 +61,12 @@ export default function PrimaryButton({
   disabled = false,
   variant = 'gradient',
   square = false,
+  compact = false,
   loadingLabel,
   icon,
   style,
 }) {
-  const fg = variant === 'light' ? colors.ink : colors.text;
+  const fg = variant === 'light' ? colors.onAccent : colors.text;
   let content;
   if (loading && loadingLabel) content = <SweepLoader label={loadingLabel} color={fg} />;
   else if (loading) content = <ActivityIndicator color={fg} />;
@@ -78,7 +79,7 @@ export default function PrimaryButton({
         </Text>
       </View>
     );
-  const btn = [styles.btn, square && styles.square];
+  const btn = [styles.btn, square && styles.square, compact && styles.compact];
 
   return (
     <PressableScale
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   square: { borderRadius: 0 },
+  compact: { height: 44, minWidth: 148, paddingHorizontal: 20, borderRadius: 10 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   band: {
     position: 'absolute',

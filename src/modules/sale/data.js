@@ -23,10 +23,13 @@ const build = (rows) => {
   };
 };
 
+// Seed dates are relative to today so 'Today's bills' always has data.
+const daysAgo = (n) => new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+
 export const sales = [
   {
     id: 'INV-2001', customer: 'Ravi Kumar', phone: '9876543210',
-    date: '2026-09-25', mode: 'UPI', delivery: 'pickup',
+    date: daysAgo(0), mode: 'UPI', delivery: 'pickup',
     ...build([
       ['SKU-001', 1], ['SKU-002', 2], ['SKU-003', 1],
       ['SKU-005', 1], ['SKU-007', 1],
@@ -34,14 +37,14 @@ export const sales = [
   },
   {
     id: 'INV-2002', customer: 'Walk-in',
-    date: '2026-09-25', mode: 'Cash', delivery: 'pickup',
+    date: daysAgo(0), mode: 'Cash', delivery: 'pickup',
     ...build([
       ['SKU-002', 1], ['SKU-007', 1], ['SKU-008', 1],
     ]),
   },
   {
     id: 'INV-2003', customer: 'Priya Sharma', phone: '9812345678',
-    date: '2026-09-24', mode: 'Card', delivery: 'home',
+    date: daysAgo(1), mode: 'Card', delivery: 'home',
     ...build([
       ['SKU-001', 2], ['SKU-004', 1], ['SKU-002', 2],
       ['SKU-005', 2], ['SKU-003', 2], ['SKU-007', 2], ['SKU-008', 1],
@@ -49,14 +52,14 @@ export const sales = [
   },
   {
     id: 'INV-2004', customer: 'Walk-in',
-    date: '2026-09-24', mode: 'Cash', delivery: 'pickup',
+    date: daysAgo(1), mode: 'Cash', delivery: 'pickup',
     ...build([
       ['SKU-006', 1], ['SKU-007', 1],
     ]),
   },
   {
     id: 'INV-2005', customer: 'Aisha Khan', phone: '9012345678',
-    date: '2026-09-23', mode: 'UPI', delivery: 'express',
+    date: daysAgo(2), mode: 'UPI', delivery: 'express',
     ...build([
       ['SKU-004', 1], ['SKU-003', 3], ['SKU-005', 1],
       ['SKU-008', 2], ['SKU-006', 2],

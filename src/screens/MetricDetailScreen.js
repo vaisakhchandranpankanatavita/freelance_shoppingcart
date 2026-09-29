@@ -11,7 +11,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import Screen from '../components/Screen';
-import Icon from '../components/Icon';
+import ScreenHeader from '../components/ScreenHeader';
 import Gauge from '../components/Gauge';
 import SegmentedControl from '../components/SegmentedControl';
 import { colors, spacing, tones } from '../theme';
@@ -44,21 +44,7 @@ export default function MetricDetailScreen({ navigation, route }) {
 
   return (
     <Screen>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          hitSlop={12}
-          style={styles.back}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-        >
-          <Icon name="chevron-back" size={24} color={colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle} accessibilityRole="header">
-          {metric.title}
-        </Text>
-        <View style={styles.back} />
-      </View>
+      <ScreenHeader title={metric.title} onBack={() => navigation.goBack()} />
 
       <View style={styles.body} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {width ? (
@@ -143,14 +129,6 @@ function Dot({ index, x, item }) {
 }
 
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-  },
-  back: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  headerTitle: { flex: 1, textAlign: 'center', color: colors.text, fontSize: 16, fontWeight: '700' },
   body: { flex: 1, paddingTop: spacing.lg },
   pagerTitle: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4, textAlign: 'center' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: spacing.md },

@@ -8,6 +8,7 @@ import SectionCard from '../../components/SectionCard';
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/PrimaryButton';
 import Heading from '../../components/Heading';
+import BottomBar from '../../components/BottomBar';
 import { colors, spacing, radius } from '../../theme';
 import { enter } from '../../theme/motion';
 
@@ -107,9 +108,9 @@ export default function PaymentScreen({ route, navigation }) {
         </SectionCard>
       </ScrollView>
 
-      <Animated.View entering={enter(4)} style={styles.footer}>
-        <PrimaryButton title={`Checkout • ₹${grand.toLocaleString()}`} icon="card-outline" onPress={onCheckout} />
-      </Animated.View>
+      <BottomBar>
+        <PrimaryButton title={`Checkout • ₹${grand.toLocaleString()}`} icon="card-outline" variant="light" onPress={onCheckout} />
+      </BottomBar>
     </Screen>
   );
 }
@@ -124,7 +125,7 @@ function Row({ label, value, light }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 120 },
+  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 150 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
   rowLabel: { color: colors.textMuted, fontSize: 14 },
   rowValue: { color: colors.text, fontSize: 14, fontWeight: '600' },
@@ -150,12 +151,4 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: colors.inkLine, marginVertical: spacing.md },
   grandLabel: { color: colors.inkMuted, fontSize: 14 },
   grandValue: { marginTop: 2 },
-  footer: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: colors.bg,
-  },
 });

@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import useTween from '../hooks/useTween';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 
 const TICKS = 96;
 const LABELS = 8;
@@ -119,6 +119,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  value: { fontSize: 64, fontWeight: '800', letterSpacing: -2, fontVariant: ['tabular-nums'] },
+  value: { fontSize: 64, fontFamily: fonts.display, letterSpacing: -2, fontVariant: ['tabular-nums'] },
   unit: { fontSize: 11, fontWeight: '800', letterSpacing: 1, marginTop: -4 },
 });

@@ -7,7 +7,7 @@ import { colors } from '../theme';
 
 const VARIANTS = {
   dark: { bg: colors.elevated2, fg: colors.text },
-  light: { bg: colors.accent, fg: colors.ink },
+  light: { bg: colors.accent, fg: colors.onAccent },
   ink: { bg: colors.chip, fg: colors.ink },
   soft: { bg: colors.cardAlt, fg: colors.ink },
 };

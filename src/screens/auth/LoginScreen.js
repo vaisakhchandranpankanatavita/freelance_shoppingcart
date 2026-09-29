@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -13,11 +12,12 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import InputField from '../../components/InputField';
+import { useFeedback } from '../../components/Feedback';
 import PrimaryButton from '../../components/PrimaryButton';
 import SegmentedControl from '../../components/SegmentedControl';
 import AuthHero from './AuthHero';
 import PinCells from './PinCells';
-import Receipt, { Barcode, Perforation, ReceiptHeader, mono } from './Receipt';
+import Receipt, { Barcode, Perforation, ReceiptHeader, mono } from '../../components/Receipt';
 import { colors, spacing } from '../../theme';
 import { fadeIn, fadeOut, layout } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
@@ -29,6 +29,7 @@ const MODES = [
 
 export default function LoginScreen({ navigation }) {
   const { login, loading } = useAuth();
+  const { toast } = useFeedback();
   const [loginMode, setLoginMode] = useState('loginId');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -37,11 +38,11 @@ export default function LoginScreen({ navigation }) {
   const onSubmit = async () => {
     if (loginMode === 'loginId') {
       if (!/^\d{4}$/.test(identifier)) {
-        Alert.alert('Invalid Login ID', 'Login ID must be exactly 4 digits.');
+        toast({ tone: 'error', title: 'Check your Login ID', message: 'It has exactly 4 digits.' });
         return;
       }
     } else if (!identifier || !password) {
-      Alert.alert('Missing info', 'Please enter your Username and password.');
+      toast({ tone: 'error', title: 'Enter your details', message: 'Username and password are both required.' });
       return;
     }
     try {
@@ -51,7 +52,7 @@ export default function LoginScreen({ navigation }) {
         password: loginMode === 'loginId' ? undefined : password,
       });
     } catch (e) {
-      Alert.alert('Login failed', e.message);
+      toast({ tone: 'error', title: "Couldn't sign in", message: e.message });
     }
   };
 
@@ -125,7 +126,8 @@ export default function LoginScreen({ navigation }) {
                 title="Sign in"
                 icon="log-in-outline"
                 variant="light"
-                square
+                compact
+                style={styles.signIn}
                 loadingLabel="Signing in"
                 onPress={onSubmit}
                 loading={loading}
@@ -151,6 +153,7 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, paddingBottom: spacing.xxl },
   receipt: { marginTop: -48 },
   segment: { marginBottom: spacing.lg },
+  signIn: { alignSelf: 'center' },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -3,19 +3,34 @@ import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  BricolageGrotesque_700Bold,
+  BricolageGrotesque_800ExtraBold,
+  useFonts,
+} from '@expo-google-fonts/bricolage-grotesque';
 import { AuthProvider } from './src/context/AuthContext';
+import { FeedbackProvider } from './src/components/Feedback';
 import RootNavigator from './src/navigation/RootNavigator';
-import { colors } from './src/theme';
+import { colors, fonts } from './src/theme';
 
 export default function App() {
+  const [loaded, fontError] = useFonts({
+    [fonts.displayBold]: BricolageGrotesque_700Bold,
+    [fonts.display]: BricolageGrotesque_800ExtraBold,
+  });
+
   return (
     <SafeAreaProvider>
       <View style={styles.outer}>
         <View style={styles.frame}>
-          <AuthProvider>
-            <StatusBar style="dark" />
-            <RootNavigator />
-          </AuthProvider>
+          {loaded || fontError ? (
+            <AuthProvider>
+              <FeedbackProvider>
+                <StatusBar style="dark" />
+                <RootNavigator />
+              </FeedbackProvider>
+            </AuthProvider>
+          ) : null}
         </View>
       </View>
     </SafeAreaProvider>

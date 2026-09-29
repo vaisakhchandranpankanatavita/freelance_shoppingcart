@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from './Icon';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
 
 export default function StatCard({ icon, label, value, delta, index = 0, style }) {
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: spacing.lg,
   },
-  value: { fontSize: 28, fontWeight: '800', letterSpacing: -1, color: colors.ink },
+  value: { fontSize: 28, fontFamily: fonts.display, letterSpacing: -1, color: colors.ink },
   label: { fontSize: 13, color: colors.inkMuted, marginTop: 2 },
   deltaRow: {
     flexDirection: 'row',

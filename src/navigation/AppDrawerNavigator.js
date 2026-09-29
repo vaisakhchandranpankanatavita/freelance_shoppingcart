@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import Icon from '../components/Icon';
 import MainTabNavigator from './MainTabNavigator';
-import { colors, spacing, radius } from '../theme';
+import { colors, spacing, radius, fonts } from '../theme';
 import { useAuth } from '../context/AuthContext';
 
 const Drawer = createDrawerNavigator();
@@ -85,7 +85,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     alignItems: 'center',
   },
-  brandText: { fontSize: 22, fontWeight: '800', color: colors.text },
+  brandText: { fontSize: 22, fontFamily: fonts.display, color: colors.text },
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',

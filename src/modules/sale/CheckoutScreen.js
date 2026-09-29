@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
@@ -7,9 +7,11 @@ import ScreenHeader from '../../components/ScreenHeader';
 import SectionCard from '../../components/SectionCard';
 import SegmentedControl from '../../components/SegmentedControl';
 import InputField from '../../components/InputField';
+import { useFeedback } from '../../components/Feedback';
 import PrimaryButton from '../../components/PrimaryButton';
 import Heading from '../../components/Heading';
-import { colors, spacing, radius } from '../../theme';
+import BottomBar from '../../components/BottomBar';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { addSale } from './services';
 
@@ -48,6 +50,7 @@ export default function CheckoutScreen({ route, navigation }) {
     mode: initialMode = 'Cash',
   } = route.params || {};
 
+  const { toast } = useFeedback();
   const [mode, setMode] = useState(initialMode);
   const [selectedCard, setSelectedCard] = useState('wallet');
   const [selectedBank, setSelectedBank] = useState('bank-sbi');
@@ -62,7 +65,7 @@ export default function CheckoutScreen({ route, navigation }) {
     if (mode === 'UPI') paymentMethod = selectedBank;
 
     if (mode === 'Cash' && Number(tendered) > 0 && Number(tendered) < grand) {
-      Alert.alert('Insufficient cash', 'Amount received is less than the total.');
+      toast({ tone: 'error', title: 'Not enough cash', message: 'The amount received is less than the total.' });
       return;
     }
 
@@ -81,7 +84,7 @@ export default function CheckoutScreen({ route, navigation }) {
         total: subtotal, fee, grand,
       });
     } catch (e) {
-      Alert.alert('Payment failed', e.message || 'Please try again.');
+      toast({ tone: 'error', title: 'Payment failed', message: e.message || 'Try again.' });
     } finally {
       setSubmitting(false);
     }
@@ -165,7 +168,7 @@ export default function CheckoutScreen({ route, navigation }) {
         </Animated.View>
       </ScrollView>
 
-      <Animated.View entering={enter(3)} style={styles.footer}>
+      <BottomBar>
         <PrimaryButton
           title={submitting ? 'Processing…' : `Pay ₹${Number(grand).toLocaleString()}`}
           variant="light"
@@ -173,7 +176,7 @@ export default function CheckoutScreen({ route, navigation }) {
           onPress={onPay}
           loading={submitting}
         />
-      </Animated.View>
+      </BottomBar>
     </Screen>
   );
 }
@@ -202,7 +205,7 @@ function OptionRow({ icon, title, subtitle, active, onPress }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 120 },
+  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 150 },
   totalCard: { padding: 24 },
   totalLabel: { color: colors.inkMuted, fontSize: 14 },
   totalValue: { marginTop: spacing.sm },
@@ -218,7 +221,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
   },
   changeLabel: { color: colors.textMuted, fontSize: 13 },
-  changeValue: { color: colors.text, fontSize: 20, fontWeight: '800' },
+  changeValue: { color: colors.text, fontSize: 20, fontFamily: fonts.display },
   qrBox: {
     alignSelf: 'center',
     alignItems: 'center',
@@ -227,7 +230,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     marginBottom: spacing.md,
   },
-  qrStore: { fontSize: 15, fontWeight: '800', color: colors.paperInk, marginTop: spacing.sm },
+  qrStore: { fontSize: 15, fontFamily: fonts.display, color: colors.paperInk, marginTop: spacing.sm },
   qrUpi: { fontSize: 12, color: colors.textFaint, marginTop: 2 },
   qrAmountPill: {
     marginTop: spacing.md,
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.chip,
     borderRadius: radius.pill,
   },
-  qrAmountText: { color: colors.ink, fontSize: 14, fontWeight: '800' },
+  qrAmountText: { color: colors.ink, fontSize: 14, fontFamily: fonts.display },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -269,5 +272,4 @@ const styles = StyleSheet.create({
   },
   radioOuterActive: { borderColor: colors.text },
   radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.text },
-  footer: { position: 'absolute', left: spacing.lg, right: spacing.lg, bottom: spacing.md },
 });

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
-import { colors } from '../../theme';
+import { colors, fonts } from '../../theme';
 
 // Four till-display digit cells over one hidden input, so the OS keypad,
 // paste and autofill all behave like a normal field.
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   filled: { backgroundColor: colors.card },
   current: { borderColor: colors.accentStrong },
-  digit: { color: colors.ink, fontSize: 28, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  digit: { color: colors.ink, fontSize: 28, fontFamily: fonts.display, fontVariant: ['tabular-nums'] },
   dash: { width: 14, height: 2, borderRadius: 1, backgroundColor: colors.textFaint },
   hidden: {
     ...StyleSheet.absoluteFillObject,

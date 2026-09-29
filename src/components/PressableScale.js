@@ -1,7 +1,14 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useState } from 'react';
+import { Platform, Pressable } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { colors } from '../theme';
 import { pressSpring } from '../theme/motion';
+
+// Keyboard focus ring (web): visible only while the control has focus.
+const focusRing = Platform.select({
+  web: { outlineStyle: 'solid', outlineWidth: 2, outlineOffset: 2, outlineColor: colors.accentStrong },
+  default: {},
+});
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -16,6 +23,7 @@ export default function PressableScale({
   ...rest
 }) {
   const scale = useSharedValue(1);
+  const [focused, setFocused] = useState(false);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
@@ -32,7 +40,16 @@ export default function PressableScale({
         scale.value = withSpring(1, pressSpring);
         onPressOut?.(e);
       }}
-      style={[style, animatedStyle]}
+      onFocus={(e) => {
+        // Ring only for keyboard focus, not mouse/touch clicks.
+        try {
+          setFocused(Platform.OS === 'web' && !!e.target?.matches?.(':focus-visible'));
+        } catch {
+          setFocused(false);
+        }
+      }}
+      onBlur={() => setFocused(false)}
+      style={[style, animatedStyle, focused && focusRing]}
     >
       {children}
     </AnimatedPressable>

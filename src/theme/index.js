@@ -31,6 +31,7 @@ export const colors = {
 
   // Accents
   accent: '#1EB7EB',
+  onAccent: '#08202C', // text/icons on a cyan fill (white would only reach ~2.3:1)
   accentStrong: '#0A7FB0', // cyan dark enough for text/outlines on the light canvas
   green: '#1ED58A',
   greenStrong: '#0B8A57', // green for text on the light canvas
@@ -71,10 +72,17 @@ export const radius = {
   pill: 999,
 };
 
+// Bricolage Grotesque carries headlines and big numbers (loaded in App.js);
+// running UI text stays on the platform's system font.
+export const fonts = {
+  display: 'BricolageGrotesque_800ExtraBold',
+  displayBold: 'BricolageGrotesque_700Bold',
+};
+
 export const typography = {
-  display: { fontSize: 40, lineHeight: 42, fontWeight: '800', letterSpacing: -1.6 },
-  title: { fontSize: 28, lineHeight: 32, fontWeight: '800', letterSpacing: -0.8 },
-  h2: { fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
+  display: { fontSize: 40, lineHeight: 44, fontFamily: fonts.display, letterSpacing: -1.2 },
+  title: { fontSize: 28, lineHeight: 34, fontFamily: fonts.display, letterSpacing: -0.6 },
+  h2: { fontSize: 22, lineHeight: 28, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
   h3: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
   body: { fontSize: 15 },
   small: { fontSize: 12 },
@@ -82,4 +90,4 @@ export const typography = {
   button: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
 };
 
-export default { colors, tones, spacing, radius, typography };
+export default { colors, tones, spacing, radius, typography, fonts };

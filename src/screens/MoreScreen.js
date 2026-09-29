@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from '../components/Icon';
 import Screen from '../components/Screen';
@@ -7,7 +7,8 @@ import ScreenHeader from '../components/ScreenHeader';
 import IconButton from '../components/IconButton';
 import PressableScale from '../components/PressableScale';
 import SectionCard from '../components/SectionCard';
-import { colors, spacing, radius } from '../theme';
+import { useFeedback } from '../components/Feedback';
+import { colors, spacing, radius, fonts } from '../theme';
 import { enter } from '../theme/motion';
 import { useAuth } from '../context/AuthContext';
 
@@ -39,16 +40,18 @@ const SECTIONS = [
 
 export default function MoreScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const { toast, confirm } = useFeedback();
 
-  const openItem = (label) => {
-    Alert.alert(label, 'Coming soon.');
-  };
+  const openItem = (label) => toast({ tone: 'info', title: label, message: 'This section is coming soon.' });
 
-  const confirmLogout = () => {
-    Alert.alert('Log Out', 'Are you sure you want to log out?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Log Out', style: 'destructive', onPress: logout },
-    ]);
+  const confirmLogout = async () => {
+    const ok = await confirm({
+      title: 'Log out?',
+      message: 'You will need your Login ID or username to sign back in.',
+      confirmLabel: 'Log out',
+      destructive: true,
+    });
+    if (ok) logout();
   };
 
   return (
@@ -130,8 +133,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: colors.ink, fontSize: 30, fontWeight: '800' },
-  profileName: { fontSize: 30, fontWeight: '800', letterSpacing: -1, color: colors.ink, marginTop: spacing.xl },
+  avatarText: { color: colors.ink, fontSize: 30, fontFamily: fonts.display },
+  profileName: { fontSize: 30, fontFamily: fonts.display, letterSpacing: -1, color: colors.ink, marginTop: spacing.xl },
   roleBadge: {
     flexDirection: 'row',
     alignItems: 'center',

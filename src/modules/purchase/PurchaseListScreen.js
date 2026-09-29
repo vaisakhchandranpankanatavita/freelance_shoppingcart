@@ -9,6 +9,7 @@ import IconButton from '../../components/IconButton';
 import Heading from '../../components/Heading';
 import SectionCard from '../../components/SectionCard';
 import SegmentedControl from '../../components/SegmentedControl';
+import EmptyState from '../../components/EmptyState';
 import { colors, spacing, radius } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { getPurchases } from './services';
@@ -96,7 +97,19 @@ export default function PurchaseListScreen({ navigation }) {
             </View>
           </Animated.View>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>No purchases in this filter.</Text>}
+        ListEmptyComponent={
+          filter === 'All' ? (
+            <EmptyState
+              icon="cart-outline"
+              title="No purchase orders"
+              message="Create an order when you restock from a supplier."
+              actionLabel="New purchase order"
+              onAction={() => navigation.navigate('AddPurchase')}
+            />
+          ) : (
+            <EmptyState icon="funnel-outline" title={`No ${filter.toLowerCase()} orders`} message="Try another filter." />
+          )
+        }
       />
     </Screen>
   );

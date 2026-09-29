@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from './Icon';
 import { colors } from '../theme';
+
+const LABELS = { Dashboard: 'Home', Stock: 'Stock', Purchase: 'Purchase', Sale: 'Sales', More: 'More' };
 import { spring } from '../theme/motion';
 
 const BAR = 18;
@@ -46,9 +48,10 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
               <Icon
                 name={focused ? icons[route.name][1] : icons[route.name][0]}
                 size={23}
-                color={focused ? colors.accent : colors.ink}
+                color={focused ? colors.accent : colors.inkMuted}
                 animate={focused}
               />
+              <Text style={[styles.label, focused && styles.labelOn]}>{LABELS[route.name] ?? route.name}</Text>
             </Pressable>
           );
         })}
@@ -59,15 +62,17 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
 
 const styles = StyleSheet.create({
   outer: { backgroundColor: colors.card, paddingHorizontal: 12 },
-  bar: { flexDirection: 'row', height: 60 },
+  bar: { flexDirection: 'row', height: 64 },
   indicator: {
     position: 'absolute',
-    bottom: 6,
+    bottom: 2,
     left: 0,
     width: BAR,
     height: 3,
     borderRadius: 2,
     backgroundColor: colors.accent,
   },
-  item: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  item: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, paddingBottom: 6 },
+  label: { color: colors.inkMuted, fontSize: 11, fontWeight: '600', letterSpacing: 0.1 },
+  labelOn: { color: colors.accent },
 });

@@ -43,7 +43,7 @@ export default function MetricCard({ metric, index, scrollX, interval, width, on
             )}
           </View>
         </View>
-        <Waveform from={from} to={to} seed={index + 1} height={46} style={styles.wave} />
+        <Waveform from={from} to={to} seed={index + 1} height={30} style={styles.wave} />
         <Text style={styles.title} numberOfLines={1}>
           {metric.title}
         </Text>
@@ -59,9 +59,9 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderRadius: radius.sm,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 18,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 12,
     shadowColor: '#000',
     shadowOpacity: 0.18,
     shadowRadius: 14,
@@ -72,15 +72,15 @@ const styles = StyleSheet.create({
   value: { color: colors.ink, fontSize: 13, fontWeight: '700' },
   unit: { color: colors.accent, fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
   badge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: { fontSize: 10, fontWeight: '800' },
-  wave: { marginTop: 18, marginBottom: 20, marginHorizontal: 6 },
-  title: { color: colors.ink, fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
-  subtitle: { color: colors.inkMuted, fontSize: 11, marginTop: 4 },
+  wave: { marginTop: 10, marginBottom: 12, marginHorizontal: 4 },
+  title: { color: colors.ink, fontSize: 15, fontWeight: '700', letterSpacing: -0.3 },
+  subtitle: { color: colors.inkMuted, fontSize: 11, marginTop: 2 },
 });

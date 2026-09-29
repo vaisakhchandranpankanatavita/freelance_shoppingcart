@@ -6,7 +6,6 @@ import {
   ScrollView,
   Share,
   Platform,
-  Alert,
 } from 'react-native';
 import Animated, { ZoomIn } from 'react-native-reanimated';
 import Icon from '../../components/Icon';
@@ -14,8 +13,11 @@ import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
 import PressableScale from '../../components/PressableScale';
 import PrimaryButton from '../../components/PrimaryButton';
+import { useFeedback } from '../../components/Feedback';
 import Heading from '../../components/Heading';
-import { colors, spacing, radius } from '../../theme';
+import BottomBar from '../../components/BottomBar';
+import Receipt, { Barcode, Perforation, mono } from '../../components/Receipt';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 
 const DELIVERY_LABELS = {
@@ -41,6 +43,7 @@ const STORE = {
 };
 
 export default function BillPreviewScreen({ route, navigation }) {
+  const { toast } = useFeedback();
   const {
     invoiceId = `INV-${Date.now().toString().slice(-6)}`,
     date = new Date().toISOString().slice(0, 10),
@@ -97,35 +100,22 @@ export default function BillPreviewScreen({ route, navigation }) {
   <div class="footer">Thank you for shopping with us!</div>
 </body></html>`;
 
-  const openPrintWindow = () => {
-    if (Platform.OS !== 'web') return false;
+  // Web opens a print window; devices need expo-print (not installed yet).
+  const printBill = () => {
+    if (Platform.OS !== 'web') {
+      toast({ tone: 'info', title: 'Printing is not set up on this device', message: 'Share the bill instead.' });
+      return;
+    }
     const w = window.open('', '_blank');
     if (!w) {
-      Alert.alert('Popup blocked', 'Allow popups to open the print preview.');
-      return false;
+      toast({ tone: 'error', title: 'Popup blocked', message: 'Allow popups to open the print preview.' });
+      return;
     }
     w.document.open();
     w.document.write(buildHtml());
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 300);
-    return true;
-  };
-
-  const onPrint = () => {
-    if (openPrintWindow()) return;
-    Alert.alert(
-      'Print not available',
-      'On device, install expo-print to enable native printing.\n\nRun: npx expo install expo-print'
-    );
-  };
-
-  const onSavePdf = () => {
-    if (openPrintWindow()) return;
-    Alert.alert(
-      'Save as PDF',
-      'On device, install expo-print + expo-sharing to export a PDF.\n\nRun: npx expo install expo-print expo-sharing'
-    );
   };
 
   const buildTextReceipt = () =>
@@ -147,7 +137,7 @@ export default function BillPreviewScreen({ route, navigation }) {
     try {
       await Share.share({ title: invoiceId, message: buildTextReceipt() });
     } catch (e) {
-      Alert.alert('Share failed', e.message || 'Try again.');
+      toast({ tone: 'error', title: "Couldn't share the bill", message: e.message || 'Try again.' });
     }
   };
 
@@ -157,18 +147,18 @@ export default function BillPreviewScreen({ route, navigation }) {
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <Animated.View entering={ZoomIn.springify().damping(14).stiffness(180)} style={styles.successBadge}>
-          <Icon name="checkmark" size={30} color={colors.ink} />
+          <Icon name="checkmark" size={30} color={colors.onAccent} />
         </Animated.View>
         <Heading level="h2" entering={enter(1)} style={styles.successText}>
-          Payment successful
+          Payment received
         </Heading>
 
-        <Animated.View entering={enter(2)} style={styles.receipt}>
+        <Receipt style={styles.receipt}>
           <Text style={styles.storeName}>{STORE.name}</Text>
           <Text style={styles.storeMeta}>{STORE.address}</Text>
-          <Text style={styles.storeMeta}>{STORE.phone}  •  GSTIN: {STORE.gstin}</Text>
+          <Text style={styles.storeMeta}>{STORE.phone}  •  GSTIN {STORE.gstin}</Text>
 
-          <View style={styles.divider} />
+          <Perforation />
 
           <Meta label="Invoice" value={invoiceId} />
           <Meta label="Date" value={date} />
@@ -176,7 +166,7 @@ export default function BillPreviewScreen({ route, navigation }) {
           <Meta label="Delivery" value={DELIVERY_LABELS[delivery] || delivery} />
           <Meta label="Payment" value={PAYMENT_LABELS[paymentMethod] || mode} />
 
-          <View style={styles.divider} />
+          <Perforation />
 
           <View style={styles.itemHeader}>
             <Text style={[styles.itemHead, { flex: 2 }]}>Item</Text>
@@ -189,7 +179,7 @@ export default function BillPreviewScreen({ route, navigation }) {
           ) : (
             cart.map((i) => (
               <View key={i.id} style={styles.itemRow}>
-                <Text style={[styles.itemCell, { flex: 2 }]} numberOfLines={1}>{i.name}</Text>
+                <Text style={[styles.itemCell, { flex: 2, fontFamily: undefined }]} numberOfLines={1}>{i.name}</Text>
                 <Text style={[styles.itemCell, styles.itemRight]}>{i.qty}</Text>
                 <Text style={[styles.itemCell, styles.itemRight]}>₹{i.price}</Text>
                 <Text style={[styles.itemCell, styles.itemRight]}>₹{(i.qty * i.price).toFixed(2)}</Text>
@@ -197,7 +187,7 @@ export default function BillPreviewScreen({ route, navigation }) {
             ))
           )}
 
-          <View style={styles.divider} />
+          <Perforation />
 
           <Meta label={`Subtotal (${items} items)`} value={`₹${Number(total).toFixed(2)}`} />
           <Meta label="Tax (5%)" value={`₹${tax.toFixed(2)}`} />
@@ -206,16 +196,20 @@ export default function BillPreviewScreen({ route, navigation }) {
             <Text style={styles.grandValue}>₹{grand.toFixed(2)}</Text>
           </View>
 
+          <Perforation />
+          <Barcode value={invoiceId.replace(/\D/g, '')} />
           <Text style={styles.thanks}>Thank you for shopping with us!</Text>
-        </Animated.View>
+        </Receipt>
       </ScrollView>
 
-      <Animated.View entering={enter(4)} style={styles.actions}>
-        <Action icon="print-outline" label="Print" onPress={onPrint} />
-        <Action icon="document-text-outline" label="PDF" onPress={onSavePdf} />
-        <Action icon="share-outline" label="Share" onPress={onShare} />
-        <PrimaryButton title="Done" variant="light" onPress={() => navigation.popToTop()} style={{ flex: 1 }} />
-      </Animated.View>
+      <BottomBar>
+        <View style={styles.actions}>
+          <Action icon="print-outline" label="Print" onPress={printBill} />
+          <Action icon="document-text-outline" label="PDF" onPress={printBill} />
+          <Action icon="share-outline" label="Share" onPress={onShare} />
+          <PrimaryButton title="Done" variant="light" onPress={() => navigation.popToTop()} style={{ flex: 1 }} />
+        </View>
+      </BottomBar>
     </Screen>
   );
 }
@@ -239,59 +233,45 @@ function Meta({ label, value }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 130 },
+  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 150 },
   successBadge: {
     alignSelf: 'center',
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: colors.success,
+    backgroundColor: colors.green,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: spacing.sm,
   },
   successText: { textAlign: 'center', marginTop: spacing.md, marginBottom: spacing.xl },
 
-  receipt: { backgroundColor: colors.card, borderRadius: radius.xl, padding: spacing.xl },
-  storeName: { fontSize: 22, fontWeight: '800', letterSpacing: -0.6, color: colors.ink, textAlign: 'center' },
-  storeMeta: { fontSize: 12, color: colors.inkMuted, textAlign: 'center', marginTop: 2 },
-  divider: {
-    borderBottomWidth: 1.5,
-    borderBottomColor: colors.inkLine,
-    borderStyle: 'dashed',
-    marginVertical: spacing.lg,
-  },
+  receipt: { marginHorizontal: 0 },
+  storeName: { fontSize: 24, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.paperInk, textAlign: 'center' },
+  storeMeta: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 2 },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6, gap: spacing.md },
-  metaLabel: { color: colors.inkMuted, fontSize: 13 },
-  metaValue: { color: colors.ink, fontSize: 13, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
+  metaLabel: { color: colors.textMuted, fontSize: 13 },
+  metaValue: { color: colors.paperInk, fontSize: 13, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
   itemHeader: { flexDirection: 'row', paddingBottom: 6, marginBottom: 4 },
-  itemHead: { flex: 1, fontSize: 12, fontWeight: '700', color: colors.inkMuted },
+  itemHead: { flex: 1, fontSize: 12, fontWeight: '700', color: colors.textMuted },
   itemRow: { flexDirection: 'row', paddingVertical: 6 },
-  itemCell: { flex: 1, fontSize: 13, color: colors.ink },
+  itemCell: { flex: 1, fontSize: 13, color: colors.paperInk, fontFamily: mono, fontVariant: ['tabular-nums'] },
   itemRight: { textAlign: 'right' },
-  emptyText: { color: colors.inkMuted, fontSize: 13, textAlign: 'center', paddingVertical: spacing.md },
+  emptyText: { color: colors.textMuted, fontSize: 13, textAlign: 'center', paddingVertical: spacing.md },
   grandRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 2,
-    borderTopColor: colors.ink,
+    borderTopColor: colors.paperInk,
     paddingTop: spacing.md,
     marginTop: spacing.sm,
   },
-  grandLabel: { color: colors.ink, fontWeight: '800', fontSize: 16 },
-  grandValue: { color: colors.ink, fontWeight: '800', fontSize: 22, letterSpacing: -0.6 },
-  thanks: { textAlign: 'center', color: colors.inkMuted, fontSize: 13, marginTop: spacing.xl },
+  grandLabel: { color: colors.paperInk, fontWeight: '800', fontSize: 16 },
+  grandValue: { color: colors.paperInk, fontFamily: fonts.display, fontSize: 26, letterSpacing: -0.6 },
+  thanks: { textAlign: 'center', color: colors.textMuted, fontSize: 13, marginTop: spacing.md },
 
-  actions: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   actionBtn: {
     width: 64,
     height: 60,
