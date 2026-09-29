@@ -8,3 +8,4 @@ export * from './endpoints/branches';
 export * from './endpoints/categories';
 export * from './endpoints/brands';
 export * from './endpoints/products';
+export * from './endpoints/suppliers';

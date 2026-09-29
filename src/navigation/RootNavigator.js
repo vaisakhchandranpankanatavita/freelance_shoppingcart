@@ -21,7 +21,7 @@ const theme = {
   },
 };
 
-const LOADER_MS = 3800; // 1.7s hero → "O" merge, then the O spins
+const LOADER_MS = 3600; // ~1.6s products gather into a ring, then the ring spins
 
 export default function RootNavigator() {
   const { user } = useAuth();

@@ -4,7 +4,7 @@ import DashboardNavigator from './DashboardNavigator';
 import StockNavigator from '../modules/stock/StockNavigator';
 import PurchaseNavigator from '../modules/purchase/PurchaseNavigator';
 import SaleNavigator from '../modules/sale/SaleNavigator';
-import MoreScreen from '../screens/MoreScreen';
+import MoreNavigator from './MoreNavigator';
 import TabBar from '../components/TabBar';
 import { colors } from '../theme';
 
@@ -30,7 +30,7 @@ export default function MainTabNavigator() {
       <Tab.Screen name="Stock" component={StockNavigator} />
       <Tab.Screen name="Purchase" component={PurchaseNavigator} />
       <Tab.Screen name="Sale" component={SaleNavigator} />
-      <Tab.Screen name="More" component={MoreScreen} />
+      <Tab.Screen name="More" component={MoreNavigator} />
     </Tab.Navigator>
   );
 }

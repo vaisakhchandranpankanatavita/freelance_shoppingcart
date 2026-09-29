@@ -37,6 +37,12 @@ Payloads may be plain objects (sent as JSON) or `FormData` (sent as multipart, f
 | `deleteProduct(id)` | POST | `/products/destroy/{id}` |
 | `getBranchStock(productId, branchId)` | GET | `/products/stockBranch/{productId}/{branchId}` |
 | `updateVariantStock(payload)` | POST | `/products/stockEntry` |
+| `getSupplierTypes()` | GET | `/supplierTypes` |
+| `getSuppliers()` | GET | `/suppliers` |
+| `createSupplier(payload)` | POST | `/suppliers/store` |
+| `getSupplier(id)` | GET | `/suppliers/{id}/edit` |
+| `updateSupplier(id, payload)` | POST | `/suppliers/update` (id sent in the body) |
+| `deleteSupplier(id)` | DELETE | `/suppliers/{id}` |
 | `searchProducts({ categoryId, branchId, search, barcode })` | GET | `/get-products?category_id&branch_id&search&barcode` |
 
 ## Tokens and refresh

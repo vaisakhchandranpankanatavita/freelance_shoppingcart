@@ -6,6 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
 import IconButton from '../../components/IconButton';
+import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
 import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
@@ -106,7 +107,13 @@ export default function StockListScreen({ navigation }) {
         renderItem={({ item, index }) => {
           const low = item.qty <= item.lowAt;
           return (
-            <Animated.View entering={enter(index + 4)} exiting={fadeOut} style={styles.card}>
+            <Animated.View entering={enter(index + 4)} exiting={fadeOut}>
+              <PressableScale
+                scaleTo={0.98}
+                style={styles.card}
+                onPress={() => navigation.navigate('ProductDetail', { productId: item.productId, name: item.name })}
+                accessibilityLabel={`Open ${item.name}`}
+              >
               <View style={styles.thumb}>
                 <Icon name="cube" size={22} color={colors.ink} />
               </View>
@@ -125,6 +132,7 @@ export default function StockListScreen({ navigation }) {
                   </Text>
                 </View>
               </View>
+              </PressableScale>
             </Animated.View>
           );
         }}

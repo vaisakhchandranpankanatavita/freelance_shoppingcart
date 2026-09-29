@@ -5,7 +5,8 @@ import { colors, fonts } from '../../theme';
 
 // Four till-display digit cells over one hidden input, so the OS keypad,
 // paste and autofill all behave like a normal field.
-export default function PinCells({ value, onChangeText, length = 4, label = 'Login ID', placeholder }) {
+// `error` flashes every cell red (a failed sign-in).
+export default function PinCells({ value, onChangeText, length = 4, label = 'Login ID', placeholder, error = false }) {
   const input = useRef(null);
   const [focused, setFocused] = useState(false);
   const active = Math.min(value.length, length - 1);
@@ -18,7 +19,7 @@ export default function PinCells({ value, onChangeText, length = 4, label = 'Log
           const digit = value[i];
           const current = focused && i === active;
           return (
-            <View key={i} style={[styles.cell, digit && styles.filled, current && styles.current]}>
+            <View key={i} style={[styles.cell, digit && styles.filled, current && styles.current, error && styles.error]}>
               {digit ? (
                 <Animated.Text key={digit + i} entering={ZoomIn.springify().damping(14)} style={styles.digit}>
                   {digit}
@@ -63,6 +64,7 @@ const styles = StyleSheet.create({
   },
   filled: { backgroundColor: colors.card },
   current: { borderColor: colors.accentStrong },
+  error: { backgroundColor: colors.danger, borderColor: colors.danger },
   digit: { color: colors.ink, fontSize: 28, fontFamily: fonts.display, fontVariant: ['tabular-nums'] },
   dash: { width: 14, height: 2, borderRadius: 1, backgroundColor: colors.textFaint },
   hidden: {

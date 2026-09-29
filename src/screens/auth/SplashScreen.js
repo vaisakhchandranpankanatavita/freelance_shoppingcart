@@ -11,15 +11,13 @@ import Animated, {
 } from 'react-native-reanimated';
 import Icon from '../../components/Icon';
 import ShelfScene from './ShelfScene';
+import { AUTH_SHELF_TOP } from './AuthHero';
 import { colors, fonts } from '../../theme';
 
 const HOLD = 4400; // everything has settled and rests before the hand-off
 const EXIT = 1300; // hand-off: branding fades, shelves glide up to where Login draws them
 const DURATION = HOLD + EXIT;
 const WORDMARK = 'grocery';
-// Distance from the top safe-area edge to the shelves in AuthHero (padding 16 + brand
-// row 32 + title 24+38 + subtitle 4+19+16).
-const LOGIN_SHELF_TOP = 149;
 
 // Charcoal splash, slow and soft: brand mark fades in → wordmark rises letter by
 // letter → tagline → the two shelves glide in and drift. At the end the branding
@@ -28,6 +26,7 @@ const LOGIN_SHELF_TOP = 149;
 export default function SplashScreen({ navigation }) {
   const insets = useSafeAreaInsets();
   const sceneRef = useRef(null);
+  const measureRef = useRef(null);
   const sceneDy = useSharedValue(0);
   const mark = useSharedValue(0);
   const tagline = useSharedValue(0);
@@ -36,7 +35,13 @@ export default function SplashScreen({ navigation }) {
 
   useEffect(() => {
     const t = setTimeout(() => navigation.replace('Login'), DURATION);
-    return () => clearTimeout(t);
+    // Re-measure right before the glide so the target is the shelves' real resting position,
+    // not a stale layout-time value (which made them overshoot toward the top).
+    const m = setTimeout(() => measureRef.current?.(), HOLD - 200);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(m);
+    };
   }, [navigation]);
 
   useEffect(() => {
@@ -50,8 +55,9 @@ export default function SplashScreen({ navigation }) {
   // How far the shelves must travel from where they rest to where Login draws them.
   const measureScene = () =>
     sceneRef.current?.measureInWindow((_x, y) => {
-      sceneDy.value = insets.top + LOGIN_SHELF_TOP - y;
+      sceneDy.value = insets.top + AUTH_SHELF_TOP - y;
     });
+  measureRef.current = measureScene;
 
   const chromeStyle = useAnimatedStyle(() => ({
     opacity: 1 - Math.min(1, exit.value * 2.2),
@@ -94,7 +100,7 @@ export default function SplashScreen({ navigation }) {
 
           <View ref={sceneRef} onLayout={measureScene} style={styles.scene}>
             <Animated.View style={sceneStyle}>
-              <ShelfScene reveal />
+              <ShelfScene reveal settle={exit} />
             </Animated.View>
           </View>
         </View>

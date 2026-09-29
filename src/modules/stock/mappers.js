@@ -40,12 +40,13 @@ const categoryName = (p) =>
 const unitName = (p) =>
   (typeof p.unit === 'string' ? p.unit : p.unit?.name) ?? p.unit_name ?? 'pcs';
 
-// One stock row: { id, name, category, qty, unit, price, lowAt }
+// One stock row: { id (variant id, else product id), productId, name, category, qty, unit, price, lowAt }
 const toRow = (product, variant) => {
   const src = variant ?? product;
   const variantName = variant && pick(variant, ['name', 'variant_name', 'title']);
   return {
     id: String(src.id ?? product.id),
+    productId: String(product.id),
     name: variantName ? `${product.name} - ${variantName}` : String(product.name ?? ''),
     category: categoryName(product),
     qty: num(pick(src, ['stock', 'quantity', 'qty']) ?? pick(product, ['stock', 'quantity', 'qty'])),

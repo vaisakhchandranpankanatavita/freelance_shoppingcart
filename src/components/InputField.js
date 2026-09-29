@@ -23,13 +23,14 @@ export default function InputField({
   returnKeyType,
   onSubmitEditing,
   error,
+  flash = false, // fills the box red for a moment (failed sign-in)
   style,
 }) {
   const [hidden, setHidden] = useState(secureTextEntry);
   const focus = useSharedValue(0);
 
   const ringStyle = useAnimatedStyle(() => ({
-    borderColor: error
+    borderColor: error || flash
       ? colors.danger
       : interpolateColor(focus.value, [0, 1], ['rgba(10,127,176,0)', colors.accentStrong]),
   }));
@@ -37,7 +38,7 @@ export default function InputField({
   return (
     <View style={[styles.container, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <Animated.View style={[styles.wrapper, ringStyle]}>
+      <Animated.View style={[styles.wrapper, flash && styles.flash, ringStyle]}>
         {icon ? <Icon name={icon} size={18} color={colors.textMuted} style={styles.icon} /> : null}
         <TextInput
           style={styles.input}
@@ -95,6 +96,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     height: 56,
   },
+  flash: { backgroundColor: `${colors.danger}55` },
   icon: { marginRight: spacing.sm },
   input: {
     flex: 1,

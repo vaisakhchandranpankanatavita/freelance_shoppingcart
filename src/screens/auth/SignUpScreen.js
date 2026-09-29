@@ -58,16 +58,22 @@ export default function SignUpScreen({ navigation }) {
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-          <AuthHero
-            title="Create account"
-            subtitle="Set up a staff login for this store."
-            switchLabel="Sign in"
-            switchIcon="log-in-outline"
-            onSwitch={() => navigation.navigate('Login')}
-          />
+        {/* The hero stays put; only the form below it scrolls. */}
+        <AuthHero
+          title="Create account"
+          subtitle="Set up a staff login for this store."
+          switchLabel="Sign in"
+          switchIcon="log-in-outline"
+          onSwitch={() => navigation.navigate('Login')}
+        />
 
-          <Receipt style={styles.receipt}>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Receipt>
             <ReceiptHeader title="New staff" />
             <Perforation />
             <Animated.View entering={enter(3)}>
@@ -116,8 +122,9 @@ export default function SignUpScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
+  // Pulled up so the receipt slip still overlaps the hero's lower edge.
+  scrollView: { flex: 1, marginTop: -48 },
   scroll: { flexGrow: 1, paddingBottom: spacing.xxl },
-  receipt: { marginTop: -48 },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',

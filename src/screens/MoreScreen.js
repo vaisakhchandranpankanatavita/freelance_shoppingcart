@@ -18,7 +18,10 @@ const SECTIONS = [
     items: [
       { key: 'Reports', label: 'Reports', icon: 'bar-chart-outline' },
       { key: 'Refunds', label: 'Manage Refunds', icon: 'refresh-outline' },
-      { key: 'Branches', label: 'Manage Branches', icon: 'business-outline' },
+      { key: 'Branches', label: 'Manage Branches', icon: 'business-outline', to: ['EntityList', { entity: 'branch' }] },
+      { key: 'Categories', label: 'Categories', icon: 'albums-outline', to: ['EntityList', { entity: 'category' }] },
+      { key: 'Brands', label: 'Brands', icon: 'ribbon-outline', to: ['EntityList', { entity: 'brand' }] },
+      { key: 'Suppliers', label: 'Suppliers', icon: 'people-outline', to: ['EntityList', { entity: 'supplier' }] },
     ],
   },
   {
@@ -31,7 +34,7 @@ const SECTIONS = [
   {
     title: 'Preferences',
     items: [
-      { key: 'Settings', label: 'Settings', icon: 'settings-outline' },
+      { key: 'Settings', label: 'Store settings', icon: 'settings-outline', to: ['EntityForm', { entity: 'shop' }] },
       { key: 'Notifications', label: 'Notifications', icon: 'notifications-outline' },
       { key: 'Help', label: 'Help & Support', icon: 'help-circle-outline' },
     ],
@@ -42,7 +45,8 @@ export default function MoreScreen({ navigation }) {
   const { user, logout } = useAuth();
   const { toast, confirm } = useFeedback();
 
-  const openItem = (label) => toast({ tone: 'info', title: label, message: 'This section is coming soon.' });
+  const openItem = (label, to) =>
+    to ? navigation.navigate(...to) : toast({ tone: 'info', title: label, message: 'This section is coming soon.' });
 
   const confirmLogout = async () => {
     const ok = await confirm({
@@ -93,7 +97,7 @@ export default function MoreScreen({ navigation }) {
                   key={item.key}
                   scaleTo={0.98}
                   style={[styles.row, idx === section.items.length - 1 && { borderBottomWidth: 0 }]}
-                  onPress={() => openItem(item.label)}
+                  onPress={() => openItem(item.label, item.to)}
                   accessibilityLabel={item.label}
                 >
                   <View style={styles.rowIcon}>

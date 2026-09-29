@@ -1,29 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { StyleSheet, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import PatternBackground from './PatternBackground';
-import ShelfScene from '../screens/auth/ShelfScene';
-import { colors, fonts, spacing } from '../theme';
-import { fadeIn, fadeOut } from '../theme/motion';
+import AuthHero, { AUTH_SHELF_TOP } from '../screens/auth/AuthHero';
+import { SHELF_ITEMS, ShelfItem, shelfFit } from '../screens/auth/ShelfScene';
+import { colors } from '../theme';
+import { fadeOut } from '../theme/motion';
 
-const MERGE = 1700; // hero → dots → "O"
-const SPIN = 1100;
-const RING = 92; // diameter of the O
-const STROKE = 7;
-const DOT = 14;
-const HERO_H = 414; // Sign in hero height below the top safe-area inset (AuthHero)
-const SHELF_BOTTOM = 56; // AuthHero paddingBottom under the shelves
-const STEPS = ['Signing you in', 'Loading your store', 'Getting the counter ready'];
-// The shelf's product colours: each one becomes a dot that flies into the O.
-const PALETTE = ['#F2484E', '#F2B33D', '#1ED58A', colors.accent, '#F4F6F8', '#F2484E', '#1ED58A', '#F2B33D'];
+const MERGE = 1600; // products lift off the shelves and gather into the ring
+const REV = 1300; // one fast, smooth revolution of the ring
+const RADIUS = 64;
+const END_SCALE = 0.36; // how small each product ends up in the ring
+const N = SHELF_ITEMS.length;
 
 const smooth = (x) => {
   'worklet';
@@ -31,121 +25,118 @@ const smooth = (x) => {
   return c * c * (3 - 2 * c);
 };
 
-// One shelf colour: rises off the shelf band and glides along an arc to its slot on the O.
-function MergeDot({ i, p, from, to }) {
+// One product from the shelf: starts exactly where Sign in draws it, then glides to its slot on
+// a ring around the screen centre. The slot keeps orbiting (`spin`), so the products chase it
+// and end up rotating quickly and smoothly as one wheel.
+function Bead({ item, size, from, centre, angle, rank, p, spin }) {
+  const [, , w, h] = item.box;
   const style = useAnimatedStyle(() => {
-    const e = smooth((p.value - i * 0.035) / 0.7);
+    const e = smooth((p.value - 0.04 - rank * 0.012) / 0.6);
+    const a = angle + spin.value * 2 * Math.PI;
+    const toX = centre.x + RADIUS * Math.cos(a);
+    const toY = centre.y + RADIUS * Math.sin(a);
     return {
-      opacity: smooth(p.value / 0.12) * (1 - smooth((p.value - 0.82) / 0.16)),
       transform: [
-        { translateX: from.x + (to.x - from.x) * e - DOT / 2 },
-        { translateY: from.y + (to.y - from.y) * e - Math.sin(Math.PI * e) * 46 - DOT / 2 },
-        { scale: 1 - 0.25 * e },
+        { translateX: from.x + (toX - from.x) * e - (w * size) / 2 },
+        { translateY: from.y + (toY - from.y) * e - Math.sin(Math.PI * e) * 30 - (h * size) / 2 },
+        { rotate: `${(a + Math.PI / 2) * e}rad` },
+        { scale: 1 - (1 - END_SCALE) * e },
       ],
     };
   });
-  return <Animated.View style={[styles.dot, { backgroundColor: PALETTE[i] }, style]} />;
+  return (
+    <Animated.View style={[styles.bead, { width: w * size, height: h * size }, style]}>
+      <ShelfItem item={item} scale={size} />
+    </Animated.View>
+  );
 }
 
-// Post-login loader that continues the Sign in hero: the charcoal store aisle lifts away,
-// its product colours fly together and merge into a single "O", which then spins as the
-// loading indicator. `duration` is the whole run.
-export default function LoginLoader({ name, duration }) {
+// Post-login loader that continues the Sign in hero on the same charcoal: the title and empty
+// shelves fade, every product lifts off separately and gathers into a ring around the screen
+// centre, and the ring spins as the loading indicator. No text.
+export default function LoginLoader() {
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const p = useSharedValue(0); // merge progress 0→1
-  const spin = useSharedValue(0);
-  const [step, setStep] = useState(0);
+  const p = useSharedValue(0); // gather progress 0→1
+  const spin = useSharedValue(0); // ring revolutions
 
-  const heroH = insets.top + HERO_H;
-  const cx = width / 2;
-  const cy = height / 2 - 30;
-  const shelfY = heroH - SHELF_BOTTOM - 90; // mid-height of the shelf artwork
-  const R = (RING - STROKE) / 2;
+  const centre = useMemo(() => ({ x: width / 2, y: height / 2 }), [width, height]);
+
+  // Each product's start (as Sign in draws it) and slot on the ring, ordered by where it starts
+  // so the paths fan out rather than cross; nearest products leave first.
+  const beads = useMemo(() => {
+    const { s, tx, ty } = shelfFit(width);
+    const top = insets.top + AUTH_SHELF_TOP;
+    const list = SHELF_ITEMS.map((item, i) => {
+      const [x, y, w, h] = item.box;
+      const from = { x: tx + (x + w / 2) * s, y: top + ty + (y + h / 2) * s };
+      return {
+        item,
+        i,
+        from,
+        size: s,
+        ang: Math.atan2(from.y - centre.y, from.x - centre.x),
+        dist: Math.hypot(from.x - centre.x, from.y - centre.y),
+      };
+    });
+    [...list].sort((a, b) => a.dist - b.dist).forEach((b, r) => (b.rank = r));
+    [...list]
+      .sort((a, b) => a.ang - b.ang)
+      .forEach((b, k) => (b.angle = -Math.PI + (2 * Math.PI * (k + 0.5)) / N));
+    return list;
+  }, [centre, width, insets.top]);
 
   useEffect(() => {
     p.value = withTiming(1, { duration: MERGE, easing: Easing.linear });
-    spin.value = withDelay(MERGE - 300, withRepeat(withTiming(1, { duration: SPIN, easing: Easing.linear }), -1));
-    const id = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), duration / STEPS.length);
-    return () => clearInterval(id);
+    spin.value = withRepeat(withTiming(1, { duration: REV, easing: Easing.linear }), -1);
   }, []);
 
   const heroStyle = useAnimatedStyle(() => ({
-    opacity: 1 - smooth((p.value - 0.05) / 0.4),
-    transform: [{ translateY: -smooth(p.value / 0.5) * 60 }, { scale: 1 - smooth(p.value / 0.5) * 0.05 }],
-  }));
-  const ringStyle = useAnimatedStyle(() => ({
-    opacity: smooth((p.value - 0.72) / 0.22),
-    transform: [{ scale: 0.86 + 0.14 * smooth((p.value - 0.72) / 0.28) }],
-  }));
-  const arcStyle = useAnimatedStyle(() => ({
-    opacity: smooth((p.value - 0.9) / 0.1),
-    transform: [{ rotate: `${spin.value * 360}deg` }],
-  }));
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: smooth((p.value - 0.85) / 0.15),
-    transform: [{ translateY: (1 - smooth((p.value - 0.85) / 0.15)) * 10 }],
+    opacity: 1 - smooth((p.value - 0.04) / 0.4),
+    transform: [{ translateY: -smooth((p.value - 0.04) / 0.4) * 12 }],
   }));
 
   return (
-    <Animated.View exiting={fadeOut} style={styles.fill}>
-      <PatternBackground />
-
-      {/* Same charcoal aisle as the Sign in hero, so the hand-off has no cut. */}
-      <Animated.View style={[styles.hero, { height: heroH }, heroStyle]}>
-        <View style={styles.shelf}>
-          <ShelfScene />
-        </View>
+    <Animated.View
+      exiting={fadeOut}
+      style={styles.fill}
+      accessibilityRole="progressbar"
+      accessibilityLabel="Signing you in"
+    >
+      {/* The Sign in hero, frozen: brand, title and empty shelves. */}
+      <Animated.View style={[styles.hero, heroStyle]} pointerEvents="none">
+        <AuthHero
+          still
+          title="Sign in"
+          subtitle="Open your counter for today's shift."
+          switchLabel="Sign up"
+          switchIcon="person-circle-outline"
+          onSwitch={() => {}}
+        />
       </Animated.View>
 
       <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {PALETTE.map((_, i) => {
-          const a = (i / PALETTE.length) * 2 * Math.PI - Math.PI / 2;
-          return (
-            <MergeDot
-              key={i}
-              i={i}
-              p={p}
-              from={{ x: ((i + 0.5) / PALETTE.length) * width, y: shelfY }}
-              to={{ x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) }}
-            />
-          );
-        })}
+        {beads.map((b) => (
+          <Bead
+            key={b.i}
+            item={b.item}
+            size={b.size}
+            from={b.from}
+            centre={centre}
+            angle={b.angle}
+            rank={b.rank}
+            p={p}
+            spin={spin}
+          />
+        ))}
       </View>
-
-      <View
-        style={[styles.o, { left: cx - RING / 2, top: cy - RING / 2 }]}
-        accessibilityRole="progressbar"
-        accessibilityLabel="Signing you in"
-      >
-        <Animated.View style={[styles.ring, ringStyle]} />
-        <Animated.View style={[styles.ring, styles.arc, arcStyle]} />
-      </View>
-
-      <Animated.View style={[styles.textBlock, { top: cy + RING / 2 + spacing.xl }, textStyle]}>
-        <Text style={styles.hello}>Welcome{name ? `, ${name}` : ''}</Text>
-        <Animated.Text key={step} entering={fadeIn()} style={styles.step}>
-          {STEPS[step]}…
-        </Animated.Text>
-      </Animated.View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  fill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.bg },
-  hero: { position: 'absolute', top: 0, left: 0, right: 0, backgroundColor: colors.card },
-  shelf: { position: 'absolute', left: 0, right: 0, bottom: SHELF_BOTTOM },
-  dot: { position: 'absolute', top: 0, left: 0, width: DOT, height: DOT, borderRadius: DOT / 2 },
-  o: { position: 'absolute', width: RING, height: RING },
-  ring: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: RING / 2,
-    borderWidth: STROKE,
-    borderColor: 'rgba(30,183,235,0.22)',
-  },
-  arc: { borderColor: 'transparent', borderTopColor: colors.accent, borderRightColor: colors.green },
-  textBlock: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
-  hello: { color: colors.text, fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.5 },
-  step: { marginTop: spacing.xs, color: colors.textMuted, fontSize: 14 },
+  // Same charcoal as the Sign in hero, so the hand-off is one continuous surface.
+  fill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.card },
+  hero: { position: 'absolute', top: 0, left: 0, right: 0 },
+  bead: { position: 'absolute', top: 0, left: 0 },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,12 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
 import PatternBackground from '../../components/PatternBackground';
@@ -34,6 +39,23 @@ export default function LoginScreen({ navigation }) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
+  const [failed, setFailed] = useState(false); // inputs flash red after a bad sign-in
+  const shake = useSharedValue(0);
+  const failTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(failTimer.current), []);
+
+  // Glitch: a burst of fast, uneven jumps (with a little skew) while the boxes flash red.
+  const glitch = () => {
+    setFailed(true);
+    clearTimeout(failTimer.current);
+    failTimer.current = setTimeout(() => setFailed(false), 900);
+    const step = (v) => withTiming(v, { duration: 45 });
+    shake.value = withSequence(step(-12), step(10), step(-8), step(12), step(-6), step(7), step(-3), step(0));
+  };
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shake.value }, { skewX: `${shake.value * 0.6}deg` }],
+  }));
 
   // Signs in as soon as the details are complete: the 4th Login ID digit, or
   // Enter on the password field (a password has no length to detect).
@@ -46,6 +68,9 @@ export default function LoginScreen({ navigation }) {
         password: loginMode === 'loginId' ? undefined : pw,
       });
     } catch (e) {
+      glitch();
+      setIdentifier('');
+      setPassword('');
       toast({ tone: 'error', title: "Couldn't sign in", message: e.message });
     }
   };
@@ -98,9 +123,9 @@ export default function LoginScreen({ navigation }) {
               style={styles.segment}
             />
 
-            <Animated.View layout={layout}>
+            <Animated.View layout={layout} style={shakeStyle}>
               {loginMode === 'loginId' ? (
-                <PinCells value={identifier} onChangeText={onPinChange} placeholder="4-digit Login ID" />
+                <PinCells value={identifier} onChangeText={onPinChange} placeholder="4-digit Login ID" error={failed} />
               ) : (
                 <Animated.View entering={fadeIn()} exiting={fadeOut}>
                   <InputField
@@ -109,6 +134,7 @@ export default function LoginScreen({ navigation }) {
                     placeholder="Enter your Username"
                     value={identifier}
                     onChangeText={setIdentifier}
+                    flash={failed}
                   />
                   <InputField
                     label="Password"
@@ -116,6 +142,7 @@ export default function LoginScreen({ navigation }) {
                     placeholder="Enter your password"
                     value={password}
                     onChangeText={setPassword}
+                    flash={failed}
                     secureTextEntry
                     returnKeyType="go"
                     onSubmitEditing={onPasswordSubmit}
@@ -145,7 +172,7 @@ export default function LoginScreen({ navigation }) {
                 accessibilityLabel="Clear"
               >
                 <Icon name="close-circle-outline" size={18} color={colors.textMuted} />
-                <Text style={styles.clearText}>{loading ? 'Signing in…' : 'Clear'}</Text>
+                <Text style={styles.clearText}>{loading ? 'Signing inï¿½' : 'Clear'}</Text>
               </Pressable>
 
               <Perforation />
