@@ -1,0 +1,3 @@
+Grocery Admin: a supermarket app for billing staff. Sign in with a 4-digit PIN, check stock and restock alerts, swipe to any job, and take a bill from cart to checkout, all from one phone.
+
+#reactnative #expo #buildinpublic

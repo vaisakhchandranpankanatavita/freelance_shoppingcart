@@ -8,6 +8,7 @@ import ScreenHeader from '../../components/ScreenHeader';
 import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
+import SummaryTiles from '../../components/SummaryTiles';
 import SharedBadge from '../../components/SharedBadge';
 import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
@@ -50,22 +51,13 @@ export default function StockListScreen({ navigation }) {
 
   const header = (
     <>
-      <View style={styles.summaryRow}>
-        <Animated.View entering={enter(1)} style={[styles.tile, styles.tileLight]}>
-          <Text style={styles.tileValueInk}>{items.length}</Text>
-          <Text style={styles.tileLabelInk}>Total items</Text>
-        </Animated.View>
-        <Animated.View entering={enter(2)} style={styles.tile}>
-          <Text style={styles.tileValue} numberOfLines={1} adjustsFontSizeToFit>
-            ₹{totalValue.toLocaleString()}
-          </Text>
-          <Text style={styles.tileLabel}>Stock value</Text>
-        </Animated.View>
-        <Animated.View entering={enter(3)} style={styles.tile}>
-          <Text style={[styles.tileValue, lowStock > 0 && { color: colors.danger }]}>{lowStock}</Text>
-          <Text style={styles.tileLabel}>Low stock</Text>
-        </Animated.View>
-      </View>
+      <SummaryTiles
+        tiles={[
+          { value: items.length, label: 'Total items', tone: 'light' },
+          { value: `₹${totalValue.toLocaleString()}`, label: 'Stock value' },
+          { value: lowStock, label: 'Low stock', tone: lowStock > 0 ? 'danger' : undefined },
+        ]}
+      />
 
       <Animated.View entering={enter(4)} style={styles.searchBox}>
         <Icon name="search" size={18} color={colors.textMuted} />
@@ -157,22 +149,6 @@ export default function StockListScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   list: { paddingHorizontal: spacing.lg, paddingBottom: 112 },
-  summaryRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
-  tile: {
-    flex: 1,
-    backgroundColor: colors.elevated,
-    borderWidth: 1,
-    borderColor: colors.line,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-    minHeight: 96,
-    justifyContent: 'flex-end',
-  },
-  tileLight: { backgroundColor: colors.card, borderColor: colors.card },
-  tileValue: { fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.text },
-  tileLabel: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  tileValueInk: { fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.ink },
-  tileLabelInk: { fontSize: 12, color: colors.inkMuted, marginTop: 2 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -180,7 +156,7 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: radius.pill,
     paddingHorizontal: spacing.lg,
-    marginVertical: spacing.lg,
+    marginBottom: spacing.lg,
   },
   searchInput: {
     flex: 1,

@@ -1,0 +1,5 @@
+ M src/modules/manage/EntityListScreen.js
+ M src/modules/manage/entities.js
+ M src/modules/stock/mappers.js
+ M src/screens/DashboardScreen.js
+?? src/modules/dashboard/

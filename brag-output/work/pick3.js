@@ -1,0 +1,22 @@
+const p=require('puppeteer-core');
+const w=ms=>new Promise(r=>setTimeout(r,ms));
+(async()=>{
+const b=await p.launch({executablePath:'C:/Program Files/Google/Chrome/Application/chrome.exe',headless:'new'});
+const pg=await b.newPage();
+pg.on('pageerror',e=>console.log('ERR',e.message));
+await pg.setRequestInterception(true);
+pg.on('request',r=>r.url().includes('serieux.in')?r.abort():r.continue());
+await pg.setViewport({width:430,height:900});
+await pg.goto('http://localhost:8081',{waitUntil:'domcontentloaded'});
+await w(7500); await pg.click('input'); await pg.keyboard.type('1001',{delay:100});
+await w(6500);
+await pg.evaluate(()=>{[...document.querySelectorAll('*')].find(x=>x.textContent==='Quick actions'&&x.children.length===0).scrollIntoView({block:'center'})});
+await w(600);
+const title=()=>pg.evaluate(()=>document.body.innerText.includes('Add stock item')?'OPENED':'dashboard');
+const crop=async n=>pg.screenshot({path:n,clip:{x:0,y:320,width:430,height:100}});
+await crop('Q0.png'); console.log('initial',await title());
+await pg.mouse.click(215,382); await w(600); await crop('Q1.png'); console.log('tap centred #1',await title());
+await pg.mouse.click(347,382); await w(900); await crop('Q2.png'); console.log('tap neighbour',await title());
+await pg.mouse.click(215,382); await w(900); console.log('tap active',await title());
+await b.close();
+})();

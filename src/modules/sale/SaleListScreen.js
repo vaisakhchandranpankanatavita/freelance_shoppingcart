@@ -8,7 +8,7 @@ import ScreenHeader from '../../components/ScreenHeader';
 import SharedBadge from '../../components/SharedBadge';
 import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
-import StatCard from '../../components/StatCard';
+import SummaryTiles from '../../components/SummaryTiles';
 import EmptyState from '../../components/EmptyState';
 import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, layout } from '../../theme/motion';
@@ -34,10 +34,13 @@ export default function SaleListScreen({ navigation }) {
   const todayCount = data.filter((s) => s.date === today).length;
 
   const header = (
-    <View style={styles.summaryRow}>
-      <StatCard icon="receipt-outline" label="Today's bills" value={String(todayCount)} index={1} />
-      <StatCard icon="cash-outline" label="Today's sales" value={`₹${todayTotal.toLocaleString()}`} index={2} />
-    </View>
+    <SummaryTiles
+      tiles={[
+        { value: todayCount, label: "Today's bills", tone: 'light' },
+        { value: `₹${todayTotal.toLocaleString()}`, label: "Today's sales" },
+        { value: data.length, label: 'All bills' },
+      ]}
+    />
   );
 
   return (
@@ -93,8 +96,7 @@ export default function SaleListScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 112 },
-  summaryRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 112 },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

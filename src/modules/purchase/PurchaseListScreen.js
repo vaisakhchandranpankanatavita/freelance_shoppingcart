@@ -6,8 +6,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
 import AddButton from '../../components/AddButton';
-import Heading from '../../components/Heading';
-import SectionCard from '../../components/SectionCard';
+import SummaryTiles from '../../components/SummaryTiles';
 import SegmentedControl from '../../components/SegmentedControl';
 import EmptyState from '../../components/EmptyState';
 import { colors, spacing, radius } from '../../theme';
@@ -39,18 +38,17 @@ export default function PurchaseListScreen({ navigation }) {
 
   const filtered = filter === 'All' ? data : data.filter((d) => d.status === filter);
   const total = data.reduce((s, d) => s + d.total, 0);
+  const pending = data.filter((d) => d.status === 'Pending').length;
 
   const header = (
     <>
-      <SectionCard tone="light" fade index={1} style={styles.summaryCard}>
-        <View style={styles.summaryIcon}>
-          <Icon name="cart" size={22} color={colors.ink} />
-        </View>
-        <Text style={styles.summaryLabel}>Total purchase value</Text>
-        <Heading level="title" tone="light" style={styles.summaryValue} numberOfLines={1} adjustsFontSizeToFit>
-          ₹{total.toLocaleString()}
-        </Heading>
-      </SectionCard>
+      <SummaryTiles
+        tiles={[
+          { value: data.length, label: 'Orders', tone: 'light' },
+          { value: `₹${total.toLocaleString()}`, label: 'Total value' },
+          { value: pending, label: 'Pending' },
+        ]}
+      />
       <Animated.View entering={enter(2)}>
         <SegmentedControl options={FILTERS} value={filter} onChange={setFilter} style={styles.filters} />
       </Animated.View>
@@ -118,22 +116,8 @@ function Meta({ icon, text }) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 112 },
-  summaryCard: { padding: 24, minHeight: 170, justifyContent: 'flex-end' },
-  summaryIcon: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.chip,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  summaryLabel: { fontSize: 14, color: colors.inkMuted },
-  summaryValue: { fontSize: 44, lineHeight: 48, letterSpacing: -2, marginTop: 4 },
-  filters: { marginVertical: spacing.md },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 112 },
+  filters: { marginBottom: spacing.md },
   card: {
     backgroundColor: colors.elevated,
     borderWidth: 1,
