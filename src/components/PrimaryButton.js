@@ -5,7 +5,7 @@ import PressableScale from './PressableScale';
 import GradientBorder from './GradientBorder';
 import { colors, typography } from '../theme';
 
-// variant: 'gradient' (outlined, the hero CTA) | 'light' (white pill) | 'dark' (graphite pill)
+// variant: 'gradient' (outlined, the hero CTA) | 'light' (cyan pill) | 'dark' (graphite pill)
 export default function PrimaryButton({
   title,
   onPress,
@@ -43,7 +43,7 @@ export default function PrimaryButton({
         <View
           style={[
             styles.btn,
-            { backgroundColor: variant === 'light' ? colors.card : colors.elevated2 },
+            { backgroundColor: variant === 'light' ? colors.accent : colors.elevated2 },
           ]}
         >
           {content}

@@ -18,6 +18,7 @@ export const ICON_MAP = {
   cart: 'ShoppingCartIcon',
   cash: 'BanknoteIcon',
   checkmark: 'CheckIcon',
+  'chevron-back': 'ChevronLeftIcon',
   'chevron-forward': 'ChevronRightIcon',
   close: 'XIcon',
   'close-circle': 'CircleXIcon',
@@ -29,6 +30,7 @@ export const ICON_MAP = {
   'eye-off': 'EyeOffIcon',
   'fast-food': 'UtensilsIcon',
   flash: 'ZapIcon',
+  speedometer: 'GaugeIcon',
   grid: 'LayoutGridIcon',
   'help-circle': 'CircleQuestionMarkIcon',
   home: 'HouseIcon',
@@ -49,6 +51,7 @@ export const ICON_MAP = {
   'qr-code': 'QrCodeIcon',
   receipt: 'ReceiptIcon',
   refresh: 'RefreshCwIcon',
+  'reorder-two': 'MenuIcon',
   restaurant: 'UtensilsIcon',
   'return-down-back': 'CornerDownLeftIcon',
   search: 'SearchIcon',
@@ -59,6 +62,7 @@ export const ICON_MAP = {
   'swap-horizontal': 'ArrowLeftRightIcon',
   'trending-up': 'TrendingUpIcon',
   wallet: 'WalletIcon',
+  water: 'DropletIcon',
 };
 
 export const baseName = (name) => name.replace(/-outline$/, '');
