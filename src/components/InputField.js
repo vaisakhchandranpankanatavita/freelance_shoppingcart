@@ -20,6 +20,8 @@ export default function InputField({
   keyboardType = 'default',
   autoCapitalize = 'none',
   maxLength,
+  returnKeyType,
+  onSubmitEditing,
   error,
   style,
 }) {
@@ -47,6 +49,8 @@ export default function InputField({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           maxLength={maxLength}
+          returnKeyType={returnKeyType}
+          onSubmitEditing={onSubmitEditing}
           accessibilityLabel={label || placeholder}
           selectionColor={colors.gradient[1]}
           onFocus={() => (focus.value = withTiming(1, { duration: 180 }))}

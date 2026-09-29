@@ -12,6 +12,7 @@ import {
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
+import PatternBackground from '../../components/PatternBackground';
 import InputField from '../../components/InputField';
 import { useFeedback } from '../../components/Feedback';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -52,6 +53,7 @@ export default function SignUpScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
+      <PatternBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

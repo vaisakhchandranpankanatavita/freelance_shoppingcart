@@ -1,18 +1,23 @@
-// Design tokens — light page, charcoal cards: a soft grey canvas with white
+// Design tokens — light page, charcoal cards: a sage-mint canvas with a faint diagonal hatch with white
 // rows/inputs, graphite "feature" cards (KPIs, chart, gauge), cyan for
 // interactive/active state and a green → cyan gradient for data.
+import { Platform } from 'react-native';
+
+// The phone app is plain white; the web presentation keeps the sage canvas.
+const web = Platform.OS === 'web';
+
 export const colors = {
   // Light canvas & surfaces
-  bg: '#EEF1F5',
+  bg: web ? '#D6E6DA' : '#FFFFFF',
   elevated: '#FFFFFF',
-  elevated2: '#E3E7EC',
-  elevated3: '#D7DCE3',
-  line: '#DCE1E7',
+  elevated2: web ? '#C3D6C9' : '#F0F2F5',
+  elevated3: web ? '#B3C9BA' : '#E3E7EC',
+  line: web ? '#BDD0C3' : '#E3E7EC',
 
   // Text on the light canvas
   text: '#1D1D23',
-  textMuted: '#6A6F7B',
-  textFaint: '#9CA2AD',
+  textMuted: web ? '#4E6155' : '#5B616E',
+  textFaint: web ? '#6A7F72' : '#8A909B',
 
   // Charcoal cards ("ink" is text on a card)
   card: '#2A2A30',

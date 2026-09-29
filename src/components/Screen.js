@@ -3,6 +3,7 @@ import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useNavigation } from '@react-navigation/native';
+import PatternBackground from './PatternBackground';
 import { colors } from '../theme';
 import { timing } from '../theme/motion';
 
@@ -35,6 +36,7 @@ export default function Screen({ children, edges = ['top', 'left', 'right'], sty
 
   return (
     <SafeAreaView style={[styles.safe, style]} edges={edges}>
+      <PatternBackground />
       <Animated.View style={[styles.fill, animatedStyle]}>{children}</Animated.View>
     </SafeAreaView>
   );

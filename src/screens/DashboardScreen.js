@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import Icon from '../components/Icon';
 import Screen from '../components/Screen';
@@ -32,10 +32,47 @@ export default function DashboardScreen({ navigation }) {
   const [width, setWidth] = useState(0);
   const [period, setPeriod] = useState('Year');
 
-  // Two cards in view with the next one peeking, snapping card by card.
-  const cardW = width ? (width - spacing.lg * 2 - GAP) / 2 + 8 : 0;
+  // Two cards fit exactly inside the screen margins, snapping card by card.
+  const cardW = width ? (width - spacing.lg * 2 - GAP) / 2 : 0;
   const interval = cardW + GAP;
   const scrollX = useSharedValue(0);
+  const carouselRef = useRef(null);
+
+  // Web has no touch: let the mouse drag the carousel and snap to a card on release
+  // (the native snapToInterval prop is ignored by react-native-web).
+  useEffect(() => {
+    if (Platform.OS !== 'web' || !cardW) return;
+    const ref = carouselRef.current;
+    const el = ref?.getScrollableNode?.() ?? ref;
+    if (!el?.addEventListener) return;
+    let startX = 0;
+    let startLeft = 0;
+    let dragging = false;
+    const move = (e) => {
+      if (dragging) el.scrollLeft = startLeft - (e.clientX - startX);
+    };
+    const up = () => {
+      if (!dragging) return;
+      dragging = false;
+      el.style.scrollSnapType = '';
+      el.scrollTo({ left: Math.round(el.scrollLeft / interval) * interval, behavior: 'smooth' });
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+    const down = (e) => {
+      dragging = true;
+      startX = e.clientX;
+      startLeft = el.scrollLeft;
+      window.addEventListener('mousemove', move);
+      window.addEventListener('mouseup', up);
+    };
+    el.addEventListener('mousedown', down);
+    return () => {
+      el.removeEventListener('mousedown', down);
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+    };
+  }, [cardW, interval]);
   const onScroll = useAnimatedScrollHandler((e) => {
     scrollX.value = e.contentOffset.x;
   });
@@ -68,6 +105,7 @@ export default function DashboardScreen({ navigation }) {
 
         {cardW ? (
           <Animated.ScrollView
+            ref={carouselRef}
             horizontal
             showsHorizontalScrollIndicator={false}
             snapToInterval={interval}

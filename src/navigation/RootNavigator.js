@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
+import LoginLoader from '../components/LoginLoader';
 import AuthNavigator from './AuthNavigator';
 import MainTabNavigator from './MainTabNavigator';
 import { useAuth } from '../context/AuthContext';
@@ -20,13 +21,25 @@ const theme = {
   },
 };
 
+const LOADER_MS = 2200;
+
 export default function RootNavigator() {
   const { user } = useAuth();
+  // Dummy loader shown for a moment after every sign-in / sign-up. Derived from
+  // the id it last finished for, so the app never flashes before the loader.
+  const [doneFor, setDoneFor] = useState(null);
+  const loading = !!user && doneFor !== user.id;
+  useEffect(() => {
+    if (!user) return undefined;
+    const id = setTimeout(() => setDoneFor(user.id), LOADER_MS);
+    return () => clearTimeout(id);
+  }, [user?.id]);
   return (
     <NavigationContainer theme={theme}>
       {/* Keyed so signing in/out cross-fades between the auth and app trees. */}
       <Animated.View key={user ? 'app' : 'auth'} entering={fadeIn()} style={styles.fill}>
         {user ? <MainTabNavigator /> : <AuthNavigator />}
+        {loading ? <LoginLoader name={user.name} duration={LOADER_MS} /> : null}
       </Animated.View>
     </NavigationContainer>
   );

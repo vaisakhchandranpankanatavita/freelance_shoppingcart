@@ -11,9 +11,9 @@ import {
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
+import PatternBackground from '../../components/PatternBackground';
 import InputField from '../../components/InputField';
 import { useFeedback } from '../../components/Feedback';
-import PrimaryButton from '../../components/PrimaryButton';
 import SegmentedControl from '../../components/SegmentedControl';
 import AuthHero from './AuthHero';
 import PinCells from './PinCells';
@@ -35,29 +35,42 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
 
-  const onSubmit = async () => {
-    if (loginMode === 'loginId') {
-      if (!/^\d{4}$/.test(identifier)) {
-        toast({ tone: 'error', title: 'Check your Login ID', message: 'It has exactly 4 digits.' });
-        return;
-      }
-    } else if (!identifier || !password) {
-      toast({ tone: 'error', title: 'Enter your details', message: 'Username and password are both required.' });
-      return;
-    }
+  // Signs in as soon as the details are complete: the 4th Login ID digit, or
+  // Enter on the password field (a password has no length to detect).
+  const submit = async (id, pw) => {
+    if (loading) return;
     try {
       await login({
         mode: loginMode,
-        identifier: identifier.trim(),
-        password: loginMode === 'loginId' ? undefined : password,
+        identifier: id.trim(),
+        password: loginMode === 'loginId' ? undefined : pw,
       });
     } catch (e) {
       toast({ tone: 'error', title: "Couldn't sign in", message: e.message });
     }
   };
 
+  const onPinChange = (v) => {
+    setIdentifier(v);
+    if (/^\d{4}$/.test(v)) submit(v);
+  };
+
+  const onPasswordSubmit = () => {
+    if (!identifier || !password) {
+      toast({ tone: 'error', title: 'Enter your details', message: 'Username and password are both required.' });
+      return;
+    }
+    submit(identifier, password);
+  };
+
+  const clear = () => {
+    setIdentifier('');
+    setPassword('');
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['left', 'right', 'bottom']}>
+      <PatternBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -87,7 +100,7 @@ export default function LoginScreen({ navigation }) {
 
             <Animated.View layout={layout}>
               {loginMode === 'loginId' ? (
-                <PinCells value={identifier} onChangeText={setIdentifier} placeholder="4-digit Login ID" />
+                <PinCells value={identifier} onChangeText={onPinChange} placeholder="4-digit Login ID" />
               ) : (
                 <Animated.View entering={fadeIn()} exiting={fadeOut}>
                   <InputField
@@ -104,6 +117,8 @@ export default function LoginScreen({ navigation }) {
                     value={password}
                     onChangeText={setPassword}
                     secureTextEntry
+                    returnKeyType="go"
+                    onSubmitEditing={onPasswordSubmit}
                   />
                 </Animated.View>
               )}
@@ -122,16 +137,16 @@ export default function LoginScreen({ navigation }) {
                 <Text style={styles.rememberText}>Keep me signed in on this counter</Text>
               </Pressable>
 
-              <PrimaryButton
-                title="Sign in"
-                icon="log-in-outline"
-                variant="light"
-                compact
-                style={styles.signIn}
-                loadingLabel="Signing in"
-                onPress={onSubmit}
-                loading={loading}
-              />
+              <Pressable
+                style={[styles.clear, !(identifier || password) && styles.clearOff]}
+                onPress={clear}
+                disabled={loading || !(identifier || password)}
+                accessibilityRole="button"
+                accessibilityLabel="Clear"
+              >
+                <Icon name="close-circle-outline" size={18} color={colors.textMuted} />
+                <Text style={styles.clearText}>{loading ? 'Signing in…' : 'Clear'}</Text>
+              </Pressable>
 
               <Perforation />
               <Barcode value={identifier} />
@@ -153,7 +168,17 @@ const styles = StyleSheet.create({
   scroll: { flexGrow: 1, paddingBottom: spacing.xxl },
   receipt: { marginTop: -48 },
   segment: { marginBottom: spacing.lg },
-  signIn: { alignSelf: 'center' },
+  clear: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
+  },
+  clearOff: { opacity: 0.4 },
+  clearText: { color: colors.textMuted, fontSize: 14, fontWeight: '600' },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',
