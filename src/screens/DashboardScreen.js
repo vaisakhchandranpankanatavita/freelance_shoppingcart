@@ -1,16 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Platform, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../components/Icon';
 import Screen from '../components/Screen';
 import PressableScale from '../components/PressableScale';
 import MetricCard from '../components/MetricCard';
 import LineChart from '../components/LineChart';
-import SegmentedControl from '../components/SegmentedControl';
+import EmptyState from '../components/EmptyState';
+import ActionPicker from '../components/ActionPicker';
+import StackedList from '../components/StackedList';
+import { DataTable, DonutChart, HealthBar } from '../components/DashboardWidgets';
+import { GlassEdge } from '../components/Glass';
 import { colors, radius, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
-import { useAuth } from '../context/AuthContext';
-import { metrics, statistic, topSelling } from '../data/dashboardData';
+import { getDashboard } from '../modules/dashboard/services';
 
 const GAP = 12;
 
@@ -20,17 +24,35 @@ const SHORTCUTS = [
   { key: 'stock', label: 'Add stock', icon: 'cube-outline', tab: 'Stock', screen: 'AddStock' },
   { key: 'po', label: 'New PO', icon: 'cart-outline', tab: 'Purchase', screen: 'AddPurchase' },
   { key: 'sales', label: 'Sales', icon: 'pricetag-outline', tab: 'Sale' },
+  { key: 'branches', label: 'Branches', icon: 'business-outline', tab: 'More', screen: 'EntityList', params: { entity: 'branch' } },
+  { key: 'categories', label: 'Categories', icon: 'albums-outline', tab: 'More', screen: 'EntityList', params: { entity: 'category' } },
+  { key: 'suppliers', label: 'Suppliers', icon: 'people-outline', tab: 'More', screen: 'EntityList', params: { entity: 'supplier' } },
+  { key: 'shop', label: 'Store', icon: 'storefront-outline', tab: 'More', screen: 'EntityForm', params: { entity: 'shop' } },
 ];
 
-const greeting = () => {
-  const h = new Date().getHours();
-  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-};
+const rupees = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
 
 export default function DashboardScreen({ navigation }) {
-  const { user } = useAuth();
   const [width, setWidth] = useState(0);
-  const [period, setPeriod] = useState('Year');
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const load = async () => {
+    try {
+      setData(await getDashboard());
+      setError('');
+    } catch (e) {
+      setError(e.message || 'Check your connection and try again.');
+    }
+  };
+  useFocusEffect(useCallback(() => { load(); }, []));
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
+  const metrics = data?.metrics ?? [];
 
   // Two cards fit exactly inside the screen margins, snapping card by card.
   const cardW = width ? (width - spacing.lg * 2 - GAP) / 2 : 0;
@@ -85,9 +107,6 @@ export default function DashboardScreen({ navigation }) {
           <Text style={styles.title} accessibilityRole="header">
             Store Dashboard
           </Text>
-          <Text style={styles.subtitle}>
-            {greeting()} <Text style={styles.name}>{user?.name || 'Admin'}!</Text>
-          </Text>
         </View>
         <Pressable
           onPress={() => navigation.navigate('More')}
@@ -103,8 +122,20 @@ export default function DashboardScreen({ navigation }) {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentStrong} />}
       >
-        {cardW ? (
+        {error && !data ? (
+          <EmptyState
+            tone="error"
+            icon="cloud-offline-outline"
+            title="Couldn't load the dashboard"
+            message={error}
+            actionLabel="Try again"
+            onAction={load}
+          />
+        ) : null}
+
+        {cardW && metrics.length ? (
           <Animated.ScrollView
             ref={carouselRef}
             horizontal
@@ -124,81 +155,140 @@ export default function DashboardScreen({ navigation }) {
                   width={cardW}
                   interval={interval}
                   scrollX={scrollX}
-                  onPress={() => navigation.navigate('MetricDetail', { key: m.key })}
+                  onPress={() => navigation.navigate(...m.to)}
                 />
               </Animated.View>
             ))}
           </Animated.ScrollView>
-        ) : (
+        ) : !error ? (
           <View style={styles.carouselPlaceholder} />
-        )}
+        ) : null}
 
-        <Animated.View entering={enter(3)} style={styles.panel}>
-          <View style={styles.row}>
-            <Text style={[styles.sectionTitle, styles.onCard]}>Statistic</Text>
-            <SegmentedControl
-              compact
-              tone="dark"
-              style={styles.toggle}
-              options={[
-                { key: 'Month', label: 'Month' },
-                { key: 'Year', label: 'Year' },
-              ]}
-              value={period}
-              onChange={setPeriod}
-            />
-          </View>
-          <View style={styles.chart}>
-            <LineChart series={statistic[period]} height={140} />
-          </View>
-        </Animated.View>
+        {data?.chart ? (
+          <Animated.View entering={enter(3)} style={styles.panel}>
+            <Text style={[styles.sectionTitle, styles.onCard]}>Stock value by category</Text>
+            <View style={styles.chart}>
+              <LineChart
+                series={data.chart.series}
+                max={data.chart.max}
+                ticks={data.chart.ticks}
+                format={(v) => `₹${v.toFixed(1)}K`}
+                initialIndex={0}
+                height={140}
+              />
+            </View>
+          </Animated.View>
+        ) : null}
+
+        {data?.insights ? (
+          <>
+            <Animated.View entering={enter(4)} style={styles.panel}>
+              <Text style={[styles.sectionTitle, styles.onCard]}>Stock health</Text>
+              <HealthBar
+                parts={[
+                  { label: 'In stock', value: data.insights.health.ok, color: colors.green },
+                  { label: 'Low', value: data.insights.health.low, color: colors.warning },
+                  { label: 'Out', value: data.insights.health.out, color: colors.danger },
+                ]}
+              />
+            </Animated.View>
+            {data.insights.share.length > 1 ? (
+              <Animated.View entering={enter(5)} style={styles.panel}>
+                <Text style={[styles.sectionTitle, styles.onCard]}>Where your stock value sits</Text>
+                <DonutChart
+                  data={data.insights.share}
+                  total={data.insights.totalValue}
+                  centreLabel="total value"
+                  format={(v) => (v >= 100000 ? `₹${(v / 100000).toFixed(1)}L` : `₹${(v / 1000).toFixed(1)}K`)}
+                />
+              </Animated.View>
+            ) : null}
+          </>
+        ) : null}
 
         <Animated.Text entering={enter(5)} style={[styles.sectionTitle, styles.section]}>
           Quick actions
         </Animated.Text>
-        <View style={styles.shortcuts}>
-          {SHORTCUTS.map((s, i) => (
-            <PressableScale
-              key={s.key}
-              entering={enter(i + 5)}
-              style={styles.shortcut}
-              accessibilityLabel={s.label}
-              onPress={() =>
-                navigation.navigate(s.tab, s.screen ? { screen: s.screen, initial: false } : undefined)
-              }
-            >
-              <View style={styles.shortcutRing}>
-                <Icon name={s.icon} size={20} color={colors.accentStrong} />
-              </View>
-              <Text style={styles.shortcutLabel} numberOfLines={1}>
-                {s.label}
-              </Text>
-            </PressableScale>
-          ))}
-        </View>
+        <ActionPicker
+          actions={SHORTCUTS}
+          onOpen={(s) =>
+            navigation.navigate(s.tab, s.screen ? { screen: s.screen, params: s.params, initial: false } : undefined)
+          }
+        />
 
-        <Animated.Text entering={enter(7)} style={[styles.sectionTitle, styles.section]}>
-          Top selling
-        </Animated.Text>
-        {topSelling.map((d, i) => (
-          <Animated.View key={d.id} entering={enter(i + 7)} style={styles.product}>
-            <View style={styles.productIcon}>
-              <Icon name={d.icon} size={20} color={colors.greenStrong} />
-            </View>
-            <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <Text style={styles.productName}>{d.name}</Text>
-              <Text style={styles.productMeta}>{d.orders.toLocaleString('en-IN')} sold</Text>
-            </View>
-            <Text style={styles.productProfit}>{d.profit}</Text>
-          </Animated.View>
-        ))}
+        {data?.lowStock.length ? (
+          <>
+            <Animated.Text entering={enter(7)} style={[styles.sectionTitle, styles.section]}>
+              Needs restocking
+            </Animated.Text>
+            <StackedList
+              items={data.lowStock}
+              keyExtractor={(d) => d.id}
+              label="items needing restock"
+              renderItem={(d) => (
+                <>
+                  <View style={[styles.productIcon, styles.lowIcon]}>
+                    <Icon name="alert-circle-outline" size={20} color={colors.danger} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: spacing.md }}>
+                    <Text style={styles.productName} numberOfLines={1}>{d.name}</Text>
+                    <Text style={styles.productMeta}>{d.category}</Text>
+                  </View>
+                  <Text style={styles.lowQty}>{d.qty} {d.unit} left</Text>
+                </>
+              )}
+            />
+          </>
+        ) : null}
+
+        {data?.topStocked.length ? (
+          <>
+            <Animated.Text entering={enter(8)} style={[styles.sectionTitle, styles.section]}>
+              Most stock value
+            </Animated.Text>
+            <StackedList
+              items={data.topStocked}
+              keyExtractor={(d) => d.id}
+              label="top stocked items"
+              renderItem={(d) => (
+                <>
+                  <View style={styles.productIcon}>
+                    <Icon name="basket-outline" size={20} color={colors.greenStrong} />
+                  </View>
+                  <View style={{ flex: 1, marginLeft: spacing.md }}>
+                    <Text style={styles.productName} numberOfLines={1}>{d.name}</Text>
+                    <Text style={styles.productMeta}>{d.qty.toLocaleString('en-IN')} {d.unit} in stock</Text>
+                  </View>
+                  <Text style={styles.productProfit}>{rupees(d.qty * d.price)}</Text>
+                </>
+              )}
+            />
+          </>
+        ) : null}
+        {data?.insights?.table.length ? (
+          <>
+            <Animated.Text entering={enter(10)} style={[styles.sectionTitle, styles.section]}>
+              Category breakdown
+            </Animated.Text>
+            <DataTable
+              columns={[
+                { key: 'category', title: 'Category', flex: 1.4, strong: true },
+                { key: 'items', title: 'Items', flex: 0.6, align: 'right' },
+                { key: 'units', title: 'Units', flex: 0.7, align: 'right', render: (v) => Math.round(v).toLocaleString('en-IN') },
+                { key: 'value', title: 'Value', flex: 1.2, align: 'right', bar: true, render: (v) => rupees(v) },
+              ]}
+              rows={data.insights.table}
+            />
+          </>
+        ) : null}
       </Animated.ScrollView>
+      <GlassEdge />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: spacing.xl },
+  scroll: { paddingBottom: 96 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -206,8 +296,6 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
   },
   title: { color: colors.text, fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.5 },
-  subtitle: { color: colors.text, fontSize: 13, marginTop: 2 },
-  name: { color: colors.accentStrong, fontWeight: '700' },
 
   carousel: { marginTop: spacing.md },
   carouselContent: { paddingHorizontal: spacing.lg, paddingVertical: 4, gap: GAP },
@@ -227,34 +315,9 @@ const styles = StyleSheet.create({
   },
   chart: { marginTop: spacing.sm },
 
-  shortcuts: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.md,
-  },
-  shortcut: { alignItems: 'center', width: 72 },
-  shortcutRing: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 1.5,
-    borderColor: colors.line,
-    backgroundColor: colors.elevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shortcutLabel: { color: colors.text, fontSize: 11, fontWeight: '500', marginTop: 6 },
+  lowIcon: { borderColor: colors.danger },
+  lowQty: { color: colors.danger, fontSize: 13, fontWeight: '700' },
 
-  product: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-    padding: 10,
-    borderRadius: 8,
-    backgroundColor: colors.elevated,
-  },
   productIcon: {
     width: 34,
     height: 34,

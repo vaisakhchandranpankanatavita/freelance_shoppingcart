@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated';
@@ -20,16 +21,18 @@ const DEPTH = 36; // how deep the curved dip cuts into the bar
 const HALF = 52; // half-width of the dip
 const BUBBLE = 52;
 const LIFT = 30; // the active icon rises from its resting spot into the bubble
-const glide = { damping: 22, stiffness: 130, mass: 1 }; // slower, softer than the app default
+// Jelly: underdamped so the dip and icons overshoot and wobble before they settle.
+const jelly = { damping: 9, stiffness: 140, mass: 0.9 };
+const jellyIcon = { damping: 8, stiffness: 190, mass: 0.7 };
 
 // Bar outline with a smooth concave dip centred on `cx` (a bezier "S" in and out).
-const outline = (cx, w, h) => {
+const outline = (cx, w, h, half) => {
   'worklet';
-  const k = HALF * 0.55;
+  const k = half * 0.55;
   return (
-    `M0 0 H${cx - HALF} ` +
-    `C${cx - HALF + k} 0 ${cx - k} ${DEPTH} ${cx} ${DEPTH} ` +
-    `C${cx + k} ${DEPTH} ${cx + HALF - k} 0 ${cx + HALF} 0 ` +
+    `M0 0 H${cx - half} ` +
+    `C${cx - half + k} 0 ${cx - k} ${DEPTH} ${cx} ${DEPTH} ` +
+    `C${cx + k} ${DEPTH} ${cx + half - k} 0 ${cx + half} 0 ` +
     `H${w} V${h} H0 Z`
   );
 };
@@ -38,11 +41,16 @@ const outline = (cx, w, h) => {
 function TabItem({ focused, icon, label, onPress, onLongPress, a11yLabel }) {
   const f = useSharedValue(focused ? 1 : 0);
   useEffect(() => {
-    f.value = withSpring(focused ? 1 : 0, glide);
+    f.value = withSpring(focused ? 1 : 0, jellyIcon);
   }, [focused]);
 
   const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -LIFT * f.value }, { scale: 1 + 0.1 * f.value }],
+    // Overshoot past 1 stretches the icon tall, then it squashes back: squash-and-stretch.
+    transform: [
+      { translateY: -LIFT * f.value },
+      { scaleX: 1 + 0.1 * f.value - 0.12 * Math.max(f.value - 1, 0) },
+      { scaleY: 1 + 0.1 * f.value + 0.2 * Math.max(f.value - 1, 0) },
+    ],
   }));
   const labelStyle = useAnimatedStyle(() => ({
     opacity: f.value,
@@ -74,19 +82,29 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
   const height = BAR + Math.max(insets.bottom, 10);
   const slot = width / state.routes.length;
   const cx = useSharedValue(0);
+  const tx = useSharedValue(0); // where the dip is heading; the gap to cx drives the stretch
   const placed = useSharedValue(0);
 
   useEffect(() => {
     if (!slot) return;
     const target = state.index * slot + slot / 2;
     // First layout snaps into place; later changes glide.
-    cx.value = placed.value ? withSpring(target, glide) : target;
+    tx.value = target;
+    cx.value = placed.value ? withSpring(target, jelly) : target;
     placed.value = 1;
   }, [state.index, slot]);
 
-  const pathProps = useAnimatedProps(() => ({ d: outline(cx.value, width, height) }));
+  // 0 at rest, up to 1 while far from target (also while wobbling back after overshoot).
+  const stretch = useDerivedValue(() => Math.min(Math.abs(tx.value - cx.value) / (slot || 1), 1));
+  const pathProps = useAnimatedProps(() => ({
+    d: outline(cx.value, width, height, HALF * (1 + 0.3 * stretch.value)),
+  }));
   const bubbleStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: cx.value - BUBBLE / 2 }],
+    transform: [
+      { translateX: cx.value - BUBBLE / 2 },
+      { scaleX: 1 + 0.35 * stretch.value },
+      { scaleY: 1 - 0.2 * stretch.value },
+    ],
   }));
 
   return (

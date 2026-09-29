@@ -50,6 +50,7 @@ export const ICON_MAP = {
   print: 'PrinterIcon',
   'qr-code': 'QrCodeIcon',
   receipt: 'ReceiptIcon',
+  ribbon: 'MedalIcon',
   refresh: 'RefreshCwIcon',
   'reorder-two': 'MenuIcon',
   restaurant: 'UtensilsIcon',

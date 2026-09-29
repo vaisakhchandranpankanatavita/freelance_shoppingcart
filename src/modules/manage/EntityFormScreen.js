@@ -3,6 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import Animated from 'react-native-reanimated';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
+import SharedBadge from '../../components/SharedBadge';
 import InputField from '../../components/InputField';
 import SelectField from '../../components/SelectField';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -114,7 +115,11 @@ export default function EntityFormScreen({ navigation, route }) {
 
   return (
     <Screen>
-      <ScreenHeader title={title} onBack={() => navigation.goBack()} />
+      <ScreenHeader
+        title={title}
+        onBack={() => navigation.goBack()}
+        right={id != null ? <SharedBadge tag={`${entity}-${id}`} icon={config.icon} size={44} radius={14} /> : undefined}
+      />
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.text} />

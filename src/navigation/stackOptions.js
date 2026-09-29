@@ -9,3 +9,7 @@ export const stackScreenOptions = {
   fullScreenGestureEnabled: true,
   contentStyle: { backgroundColor: colors.bg },
 };
+
+// Pages a list row morphs into (see SharedBadge): a cross-fade lets the shared badge fly between
+// the two screens instead of riding a sliding one.
+export const sharedElementOptions = { animation: 'fade', animationDuration: 380 };

@@ -5,7 +5,7 @@ import Icon from '../../components/Icon';
 import { useFocusEffect } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
-import IconButton from '../../components/IconButton';
+import AddButton from '../../components/AddButton';
 import Heading from '../../components/Heading';
 import SectionCard from '../../components/SectionCard';
 import SegmentedControl from '../../components/SegmentedControl';
@@ -62,14 +62,6 @@ export default function PurchaseListScreen({ navigation }) {
       <ScreenHeader
         large
         title="Purchases"
-        left={
-          <IconButton icon="person" variant="light" accessibilityLabel="Profile and settings"
-            onPress={() => navigation.getParent()?.navigate('More') ?? navigation.navigate('More')} />
-        }
-        right={
-          <IconButton icon="add" variant="light" accessibilityLabel="New purchase order"
-            onPress={() => navigation.navigate('AddPurchase')} />
-        }
       />
 
       <Animated.FlatList
@@ -111,6 +103,7 @@ export default function PurchaseListScreen({ navigation }) {
           )
         }
       />
+      <AddButton label="New PO" accessibilityLabel="New purchase order" onPress={() => navigation.navigate('AddPurchase')} />
     </Screen>
   );
 }
@@ -125,7 +118,7 @@ function Meta({ icon, text }) {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 112 },
   summaryCard: { padding: 24, minHeight: 170, justifyContent: 'flex-end' },
   summaryIcon: {
     position: 'absolute',

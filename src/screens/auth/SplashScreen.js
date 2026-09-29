@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Icon from '../../components/Icon';
 import ShelfScene from './ShelfScene';
-import { AUTH_SHELF_TOP } from './AuthHero';
+import { AUTH_SHELF_TOP, BRAND_MARK_TAG } from './AuthHero';
 import { colors, fonts } from '../../theme';
 
 const HOLD = 4400; // everything has settled and rests before the hand-off
@@ -91,18 +91,21 @@ export default function SplashScreen({ navigation }) {
     >
       <View style={styles.fill}>
         <View style={styles.center}>
-          <Animated.View style={[styles.brand, chromeStyle]}>
-            <Animated.View style={[styles.mark, markStyle]}>
+          <View style={styles.brand}>
+            {/* Shared element: stays fully visible so the stack can carry it to Login's corner mark. */}
+            <Animated.View sharedTransitionTag={BRAND_MARK_TAG} style={[styles.mark, markStyle]}>
               <Icon name="basket" size={40} color={colors.ink} />
             </Animated.View>
 
+            <Animated.View style={[styles.brand, chromeStyle]}>
             <View style={styles.wordRow} accessible={false}>
               {WORDMARK.split('').map((ch, i) => (
                 <Letter key={i} char={ch} delay={900 + i * 90} />
               ))}
             </View>
             <Animated.Text style={[styles.tagline, taglineStyle]}>Supermarket admin</Animated.Text>
-          </Animated.View>
+            </Animated.View>
+          </View>
 
           <View ref={sceneRef} onLayout={measureScene} style={styles.scene}>
             <Animated.View style={sceneStyle}>

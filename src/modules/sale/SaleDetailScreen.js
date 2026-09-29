@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
+import SharedBadge from '../../components/SharedBadge';
 import SectionCard from '../../components/SectionCard';
 import Heading from '../../components/Heading';
 import { colors, spacing, radius, fonts } from '../../theme';
@@ -66,7 +67,11 @@ export default function SaleDetailScreen({ route, navigation }) {
 
   return (
     <Screen>
-      <ScreenHeader title="Sale details" onBack={() => navigation.goBack()} />
+      <ScreenHeader
+        title="Sale details"
+        onBack={() => navigation.goBack()}
+        right={<SharedBadge tag={`sale-${id}`} letter={String(customer).charAt(0).toUpperCase()} size={44} radius={22} />}
+      />
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <SectionCard tone="light" fade index={0} style={styles.hero}>

@@ -5,7 +5,9 @@ import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
+import SharedBadge from '../../components/SharedBadge';
 import IconButton from '../../components/IconButton';
+import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
 import { useFeedback } from '../../components/Feedback';
@@ -27,7 +29,8 @@ export default function EntityListScreen({ navigation, route }) {
 
   const load = async () => {
     try {
-      setItems(listOf(await api.list()));
+      // Rows show `name`; categories and brands carry it as category_name / brand_name.
+      setItems(listOf(await api.list()).map((o) => ({ ...o, name: o[config.nameKey ?? 'name'] ?? o.name })));
       setError('');
     } catch (e) {
       setError(e.message || 'Check your connection and try again.');
@@ -83,7 +86,6 @@ export default function EntityListScreen({ navigation, route }) {
         large
         title={config.title}
         onBack={() => navigation.goBack()}
-        right={<IconButton icon="add" variant="light" accessibilityLabel={`Add ${config.singular}`} onPress={() => open(undefined)} />}
       />
       <Animated.FlatList
         data={shown}
@@ -111,9 +113,7 @@ export default function EntityListScreen({ navigation, route }) {
           return (
             <Animated.View entering={enter(index + 2)} exiting={fadeOut} style={styles.card}>
               <PressableScale style={styles.main} scaleTo={0.98} onPress={() => open(item.id)} accessibilityLabel={`Edit ${item.name}`}>
-                <View style={styles.thumb}>
-                  <Icon name={config.icon} size={20} color={colors.ink} />
-                </View>
+                <SharedBadge tag={`${route.params.entity}-${item.id}`} icon={config.icon} size={44} radius={14} />
                 <View style={styles.text}>
                   <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
                   {sub ? <Text style={styles.sub} numberOfLines={1}>{sub}</Text> : null}
@@ -141,12 +141,13 @@ export default function EntityListScreen({ navigation, route }) {
           )
         }
       />
+      <AddButton label="Add" accessibilityLabel={`Add ${config.singular}`} onPress={() => open(undefined)} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 112 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',

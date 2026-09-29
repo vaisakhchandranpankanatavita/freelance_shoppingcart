@@ -5,9 +5,10 @@ import Icon from '../../components/Icon';
 import { useFocusEffect } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
-import IconButton from '../../components/IconButton';
+import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
+import SharedBadge from '../../components/SharedBadge';
 import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { getStockItems } from './services';
@@ -85,14 +86,6 @@ export default function StockListScreen({ navigation }) {
       <ScreenHeader
         large
         title="Stock"
-        left={
-          <IconButton icon="person" variant="light" accessibilityLabel="Profile and settings"
-            onPress={() => navigation.getParent()?.navigate('More') ?? navigation.navigate('More')} />
-        }
-        right={
-          <IconButton icon="add" variant="light" accessibilityLabel="Add stock item"
-            onPress={() => navigation.navigate('AddStock')} />
-        }
       />
 
       <Animated.FlatList
@@ -114,9 +107,7 @@ export default function StockListScreen({ navigation }) {
                 onPress={() => navigation.navigate('ProductDetail', { productId: item.productId, name: item.name })}
                 accessibilityLabel={`Open ${item.name}`}
               >
-              <View style={styles.thumb}>
-                <Icon name="cube" size={22} color={colors.ink} />
-              </View>
+              <SharedBadge tag={`stock-${item.productId}`} icon="cube" size={48} radius={16} />
               <View style={{ flex: 1, marginLeft: spacing.md }}>
                 <Text style={styles.name} numberOfLines={1}>{item.name}</Text>
                 <Text style={styles.sub}>{item.id} • {item.category}</Text>
@@ -159,12 +150,13 @@ export default function StockListScreen({ navigation }) {
           )
         }
       />
+      <AddButton label="Add item" accessibilityLabel="Add stock item" onPress={() => navigation.navigate('AddStock')} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingBottom: 112 },
   summaryRow: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.lg },
   tile: {
     flex: 1,

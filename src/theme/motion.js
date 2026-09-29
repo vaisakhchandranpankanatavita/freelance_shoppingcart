@@ -17,5 +17,8 @@ export const enter = (index = 0) =>
 export const fadeIn = (delay = 0) => FadeIn.delay(delay).duration(320);
 export const fadeOut = FadeOut.duration(160);
 
+// Loader exit: a long ease-out dissolve (with a hair of zoom) so the app it uncovers reads as arriving.
+export const loaderExit = FadeOut.duration(720).easing(Easing.out(Easing.cubic));
+
 // Smoothly reflows siblings when list items are added, removed or filtered.
 export const layout = LinearTransition.springify().damping(20).stiffness(200);

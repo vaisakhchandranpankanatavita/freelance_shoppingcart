@@ -3,6 +3,7 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleShe
 import Animated from 'react-native-reanimated';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
+import SharedBadge from '../../components/SharedBadge';
 import InputField from '../../components/InputField';
 import SelectField from '../../components/SelectField';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -153,7 +154,11 @@ export default function ProductDetailScreen({ navigation, route }) {
 
   return (
     <Screen>
-      <ScreenHeader title="Item details" onBack={() => navigation.goBack()} />
+      <ScreenHeader
+        title="Item details"
+        onBack={() => navigation.goBack()}
+        right={<SharedBadge tag={`stock-${productId}`} icon="cube" size={44} radius={16} />}
+      />
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.text} />

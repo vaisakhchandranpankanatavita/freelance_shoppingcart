@@ -6,7 +6,7 @@ import PaymentScreen from './PaymentScreen';
 import CheckoutScreen from './CheckoutScreen';
 import BillPreviewScreen from './BillPreviewScreen';
 import SaleDetailScreen from './SaleDetailScreen';
-import { stackScreenOptions } from '../../navigation/stackOptions';
+import { stackScreenOptions, sharedElementOptions } from '../../navigation/stackOptions';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,7 +22,7 @@ export default function SaleNavigator() {
         component={BillPreviewScreen}
         options={{ animation: 'fade_from_bottom', gestureEnabled: false }}
       />
-      <Stack.Screen name="SaleDetail" component={SaleDetailScreen} />
+      <Stack.Screen name="SaleDetail" component={SaleDetailScreen} options={sharedElementOptions} />
     </Stack.Navigator>
   );
 }

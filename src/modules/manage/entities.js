@@ -52,7 +52,7 @@ export const itemOf = (res) => {
 
 export const isActive = (item) => {
   const v = item?.status ?? item?.is_active;
-  return v === 1 || v === true || String(v).toLowerCase() === '1' || String(v).toLowerCase() === 'active';
+  return v === 1 || v === true || ['1', 'y', 'active'].includes(String(v).toLowerCase());
 };
 
 // ── select options ─────────────────────────────────────────────────────────────────────
@@ -65,11 +65,11 @@ export const LOOKUPS = {
 };
 
 export const toOptions = (res) =>
-  listOf(res).map((o) => ({ value: o.id, label: String(o.name ?? o.type ?? o.title ?? o.id) }));
+  listOf(res).map((o) => ({ value: o.id, label: String(o.name ?? o.category_name ?? o.brand_name ?? o.type ?? o.title ?? o.id) }));
 
 // ── fields ─────────────────────────────────────────────────────────────────────────────
-const name = (label, placeholder) => ({
-  key: 'name', label, icon: 'pricetag-outline', placeholder, autoCapitalize: 'words', required: true,
+const name = (label, placeholder, key = 'name') => ({
+  key, label, icon: 'pricetag-outline', placeholder, autoCapitalize: 'words', required: true,
 });
 const phone = { key: 'phone', label: 'Phone', icon: 'call-outline', placeholder: '10-digit number', keyboardType: 'phone-pad' };
 const email = { key: 'email', label: 'Email', icon: 'at-outline', placeholder: 'name@example.com', keyboardType: 'email-address' };
@@ -112,7 +112,8 @@ export const ENTITIES = {
       toggle: toggleCategoryStatus, remove: deleteCategory,
     },
     subtitle: (c) => c.description ?? '',
-    fields: [name('Category name', 'e.g. Grains'), description],
+    nameKey: 'category_name',
+    fields: [name('Category name', 'e.g. Grains', 'category_name'), description],
   },
   brand: {
     title: 'Brands',
@@ -123,7 +124,8 @@ export const ENTITIES = {
       toggle: toggleBrandStatus, remove: deleteBrand,
     },
     subtitle: (b) => b.description ?? '',
-    fields: [name('Brand name', 'e.g. Tata'), description],
+    nameKey: 'brand_name',
+    fields: [name('Brand name', 'e.g. Tata', 'brand_name'), description],
   },
   supplier: {
     title: 'Suppliers',

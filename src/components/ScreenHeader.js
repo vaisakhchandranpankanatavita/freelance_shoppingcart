@@ -2,12 +2,13 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import IconButton from './IconButton';
 import Heading from './Heading';
-import { colors, spacing } from '../theme';
+import { colors, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
 
 const Spacer = () => <View style={{ width: 44 }} />;
 
-// Compact: [back] Title [right]. Large: button row, then a big balanced headline.
+// Compact: [back] Title [right] (centred title). Large: [back] Title [right] on one row with the
+// title left-aligned in the Dashboard's header style, optional subtitle underneath.
 export default function ScreenHeader({
   title,
   subtitle,
@@ -28,12 +29,11 @@ export default function ScreenHeader({
       <View style={styles.wrapLarge}>
         <View style={styles.row}>
           {leading}
-          <View style={styles.flex} />
+          <Heading level="title" entering={enter(0)} style={styles.largeTitle} numberOfLines={1}>
+            {title}
+          </Heading>
           {right}
         </View>
-        <Heading level="title" entering={enter(0)} style={styles.largeTitle}>
-          {title}
-        </Heading>
         {subtitle ? (
           <Heading level="small" entering={enter(1)} style={styles.sub} accessibilityRole="text">
             {subtitle}
@@ -56,7 +56,7 @@ export default function ScreenHeader({
 
 const styles = StyleSheet.create({
   wrap: { paddingHorizontal: spacing.lg, paddingVertical: spacing.md },
-  wrapLarge: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm },
+  wrapLarge: { paddingHorizontal: spacing.lg, paddingTop: 4, paddingBottom: spacing.xs }, // 44px button row centres the title where the Dashboard's sits
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
   title: {
@@ -67,6 +67,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.3,
     color: colors.text,
   },
-  largeTitle: { marginTop: spacing.lg },
+  // Same size and font as the Dashboard's "Store Dashboard" title.
+  largeTitle: { flex: 1, fontSize: 22, lineHeight: 28, fontFamily: fonts.display, letterSpacing: -0.5 },
   sub: { color: colors.textMuted, fontSize: 14, marginTop: 4 },
 });

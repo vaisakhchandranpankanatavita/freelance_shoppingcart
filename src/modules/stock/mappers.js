@@ -32,8 +32,10 @@ export const toItem = (res) => {
   return inner?.product ?? inner?.data ?? inner;
 };
 
+const productName = (p) => String(p.item_name ?? p.name ?? '');
+
 const categoryName = (p) =>
-  (typeof p.category === 'string' ? p.category : p.category?.name) ??
+  (typeof p.category === 'string' ? p.category : p.category?.category_name ?? p.category?.name) ??
   p.category_name ??
   'General';
 
@@ -47,7 +49,7 @@ const toRow = (product, variant) => {
   return {
     id: String(src.id ?? product.id),
     productId: String(product.id),
-    name: variantName ? `${product.name} - ${variantName}` : String(product.name ?? ''),
+    name: variantName ? `${productName(product)} - ${variantName}` : productName(product),
     category: categoryName(product),
     qty: num(pick(src, ['stock', 'quantity', 'qty']) ?? pick(product, ['stock', 'quantity', 'qty'])),
     unit: unitName(src.unit || src.unit_name ? src : product),

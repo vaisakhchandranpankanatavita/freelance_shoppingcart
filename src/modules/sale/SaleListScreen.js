@@ -5,7 +5,8 @@ import Icon from '../../components/Icon';
 import { useFocusEffect } from '@react-navigation/native';
 import Screen from '../../components/Screen';
 import ScreenHeader from '../../components/ScreenHeader';
-import IconButton from '../../components/IconButton';
+import SharedBadge from '../../components/SharedBadge';
+import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
 import StatCard from '../../components/StatCard';
 import EmptyState from '../../components/EmptyState';
@@ -44,14 +45,6 @@ export default function SaleListScreen({ navigation }) {
       <ScreenHeader
         large
         title="Sales"
-        left={
-          <IconButton icon="person" variant="light" accessibilityLabel="Profile and settings"
-            onPress={() => navigation.getParent()?.navigate('More') ?? navigation.navigate('More')} />
-        }
-        right={
-          <IconButton icon="add" variant="light" accessibilityLabel="New bill"
-            onPress={() => navigation.navigate('NewSale')} />
-        }
       />
 
       <Animated.FlatList
@@ -70,9 +63,7 @@ export default function SaleListScreen({ navigation }) {
               onPress={() => navigation.navigate('SaleDetail', { sale: item })}
               accessibilityLabel={`Sale ${item.id} for ${item.customer}`}
             >
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{item.customer.charAt(0).toUpperCase()}</Text>
-              </View>
+              <SharedBadge tag={`sale-${item.id}`} letter={item.customer.charAt(0).toUpperCase()} size={48} radius={24} />
               <View style={{ flex: 1, marginLeft: spacing.md }}>
                 <Text style={styles.customer} numberOfLines={1}>{item.customer}</Text>
                 <Text style={styles.sub}>{item.id} • {item.date}</Text>
@@ -96,12 +87,13 @@ export default function SaleListScreen({ navigation }) {
           />
         }
       />
+      <AddButton label="New bill" accessibilityLabel="New bill" onPress={() => navigation.navigate('NewSale')} />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xxl },
+  list: { paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: 112 },
   summaryRow: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.lg },
   card: {
     flexDirection: 'row',

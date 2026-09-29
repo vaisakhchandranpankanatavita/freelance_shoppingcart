@@ -12,6 +12,7 @@ import { enter } from '../../theme/motion';
 // title margin 24 + title 38 + subtitle margin 4 + subtitle 20 + gap 16. Every line
 // height above is explicit, so the splash and loader can land the artwork exactly here.
 export const AUTH_SHELF_TOP = 150;
+export const BRAND_MARK_TAG = 'brandMark'; // shared element: Splash's basket flies into this corner mark
 export const AUTH_SHELF_BOTTOM = 56; // hero padding under the shelves
 export const AUTH_HERO_H = AUTH_SHELF_TOP + 210 + AUTH_SHELF_BOTTOM;
 
@@ -25,9 +26,9 @@ export default function AuthHero({ title, subtitle, switchLabel, switchIcon, onS
     <View style={[styles.hero, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.row}>
         <View style={styles.brand} accessibilityLabel="Grocery Admin">
-          <View style={styles.mark}>
+          <Animated.View sharedTransitionTag={BRAND_MARK_TAG} style={styles.mark}>
             <Icon name="basket" size={18} color={colors.ink} />
-          </View>
+          </Animated.View>
           <Text style={styles.brandText}>Grocery Admin</Text>
         </View>
         {onSwitch ? (

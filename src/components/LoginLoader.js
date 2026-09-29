@@ -12,14 +12,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuthHero, { AUTH_SHELF_TOP } from '../screens/auth/AuthHero';
 import { SCENE_H, Shelf, shelfFit } from '../screens/auth/ShelfScene';
 import { colors } from '../theme';
-import { fadeOut } from '../theme/motion';
+import { loaderExit } from '../theme/motion';
 
 const RAMP = 0.9; // seconds for the rows to reach full speed
 const SPEED = { upper: 210, lower: 290 }; // px/s, both rightwards; the lower row is quicker for depth
-const GLIDE = 1100; // ms the shelves take to travel from the Sign in hero to the screen centre
-const SPLIT = 26; // px each row drifts away from the other while it travels
+const GLIDE = 1100; // ms the Sign in title and brand take to fade out
 const UPPER_H = 120; // scene units: the upper shelf is the top 120 of the 400×210 artwork
-const LOWER_H = SCENE_H - UPPER_H;
 
 const smooth = (x) => {
   'worklet';
@@ -35,13 +33,10 @@ const travelled = (t, v) => {
 
 // One shelf of the Sign in artwork, drawn twice side by side so it can slide right forever:
 // when it has moved one width, the second copy sits exactly where the first started.
-function Row({ group, width, height, viewBox, clock, glide, split }) {
+function Row({ group, width, height, viewBox, clock }) {
   const v = SPEED[group];
   const style = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: (travelled(clock.value, v) % width) - width },
-      { translateY: glide.value * split },
-    ],
+    transform: [{ translateX: (travelled(clock.value, v) % width) - width }],
   }));
   return (
     <Animated.View style={[styles.row, { width: width * 2, height }, style]}>
@@ -55,14 +50,14 @@ function Row({ group, width, height, viewBox, clock, glide, split }) {
 }
 
 // Post-login transition built from the Sign in hero itself: the title and brand fade, then the
-// very same two shelves lift off, glide to the middle of the screen and slide to the right as
-// endless loops until the app is ready. Progress runs along the bottom, as on the splash.
+// very same two shelves — exactly the Sign in image's width, height and position — stay put and
+// slide to the right as endless loops until the app is ready. Progress runs along the bottom, as on the splash.
 export default function LoginLoader({ duration = 3600 }) {
   // Sized from its own layout, not the window: on desktop web the app sits in a narrow phone frame.
-  const [{ width, height }, setSize] = useState({ width: 0, height: 0 });
+  const [{ width }, setSize] = useState({ width: 0 });
   const insets = useSafeAreaInsets();
   const clock = useSharedValue(0); // seconds since the loader opened
-  const glide = useSharedValue(0); // 0 = Sign in position, 1 = screen centre
+  const glide = useSharedValue(0); // 0 = Sign in hero shown, 1 = hero faded out
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -71,19 +66,22 @@ export default function LoginLoader({ duration = 3600 }) {
     progress.value = withTiming(1, { duration, easing: Easing.inOut(Easing.cubic) });
   }, []);
 
+  // Sign in draws the 400×210 scene at scale `s` in a 210-tall box, bottom-aligned, so on wide
+  // screens its top `y0` scene units are cropped. Draw exactly the same window, split per shelf.
   const { s, ty } = shelfFit(width || 1);
   const top = insets.top + AUTH_SHELF_TOP; // where Sign in draws the shelves
-  const upperH = UPPER_H * s;
-  const lowerH = LOWER_H * s;
-  const travel = height / 2 - (top + (upperH + lowerH) / 2 + ty);
+  const y0 = -ty / s;
+  const upperTop = Math.min(y0, UPPER_H);
+  const lowerTop = Math.max(y0, UPPER_H);
+  const upperH = (UPPER_H - upperTop) * s;
+  const lowerH = (SCENE_H - lowerTop) * s;
 
   const heroStyle = useAnimatedStyle(() => ({ opacity: 1 - smooth(glide.value / 0.35) }));
-  const stageStyle = useAnimatedStyle(() => ({ transform: [{ translateY: glide.value * travel }] }));
   const progressStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
 
   return (
     <Animated.View
-      exiting={fadeOut}
+      exiting={loaderExit}
       style={styles.fill}
       onLayout={(e) => setSize(e.nativeEvent.layout)}
       accessibilityRole="progressbar"
@@ -102,12 +100,14 @@ export default function LoginLoader({ duration = 3600 }) {
       </Animated.View>
 
       {width ? (
-        <Animated.View style={[styles.stage, { top: top + ty, width, height: upperH + lowerH }, stageStyle]} pointerEvents="none">
-          <View style={{ width, height: upperH, overflow: 'hidden' }}>
-            <Row group="upper" width={width} height={upperH} viewBox={`0 0 400 ${UPPER_H}`} clock={clock} glide={glide} split={-SPLIT} />
-          </View>
+        <Animated.View style={[styles.stage, { top, width, height: upperH + lowerH }]} pointerEvents="none">
+          {upperH > 0 ? (
+            <View style={{ width, height: upperH, overflow: 'hidden' }}>
+              <Row group="upper" width={width} height={upperH} viewBox={`0 ${upperTop} 400 ${UPPER_H - upperTop}`} clock={clock} />
+            </View>
+          ) : null}
           <View style={{ width, height: lowerH, overflow: 'hidden' }}>
-            <Row group="lower" width={width} height={lowerH} viewBox={`0 ${UPPER_H} 400 ${LOWER_H}`} clock={clock} glide={glide} split={SPLIT} />
+            <Row group="lower" width={width} height={lowerH} viewBox={`0 ${lowerTop} 400 ${SCENE_H - lowerTop}`} clock={clock} />
           </View>
         </Animated.View>
       ) : null}
