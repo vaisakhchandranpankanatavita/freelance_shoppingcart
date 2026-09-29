@@ -8,7 +8,7 @@ import { spring } from '../theme/motion';
 
 const BAR = 18;
 
-// Flat graphite bar: white icons, the focused one turns cyan and a short cyan
+// Charcoal bar anchoring the light page: white icons, the focused one turns cyan and a short cyan
 // indicator springs underneath it.
 export default function TabBar({ state, descriptors, navigation, icons }) {
   const insets = useSafeAreaInsets();
@@ -46,7 +46,7 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
               <Icon
                 name={focused ? icons[route.name][1] : icons[route.name][0]}
                 size={23}
-                color={focused ? colors.accent : colors.text}
+                color={focused ? colors.accent : colors.ink}
                 animate={focused}
               />
             </Pressable>
@@ -58,7 +58,7 @@ export default function TabBar({ state, descriptors, navigation, icons }) {
 }
 
 const styles = StyleSheet.create({
-  outer: { backgroundColor: colors.bg, paddingHorizontal: 12 },
+  outer: { backgroundColor: colors.card, paddingHorizontal: 12 },
   bar: { flexDirection: 'row', height: 60 },
   indicator: {
     position: 'absolute',

@@ -43,7 +43,7 @@ export default function PurchaseListScreen({ navigation }) {
     <>
       <SectionCard tone="light" fade index={1} style={styles.summaryCard}>
         <View style={styles.summaryIcon}>
-          <Icon name="cart" size={22} color={colors.text} />
+          <Icon name="cart" size={22} color={colors.ink} />
         </View>
         <Text style={styles.summaryLabel}>Total purchase value</Text>
         <Heading level="title" tone="light" style={styles.summaryValue} numberOfLines={1} adjustsFontSizeToFit>

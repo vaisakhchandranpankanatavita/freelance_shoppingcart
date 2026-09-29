@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.chip,
     borderRadius: radius.pill,
   },
-  qrAmountText: { color: colors.text, fontSize: 14, fontWeight: '800' },
+  qrAmountText: { color: colors.ink, fontSize: 14, fontWeight: '800' },
   option: {
     flexDirection: 'row',
     alignItems: 'center',

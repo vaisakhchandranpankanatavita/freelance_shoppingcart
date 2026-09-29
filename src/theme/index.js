@@ -1,29 +1,29 @@
-// Design tokens — charcoal smart-dashboard look: graphite canvas, slightly lifted
-// graphite cards, cyan for interactive/active state and a green → cyan accent
-// gradient for data (waveforms, chart area, progress).
+// Design tokens — light page, charcoal cards: a soft grey canvas with white
+// rows/inputs, graphite "feature" cards (KPIs, chart, gauge), cyan for
+// interactive/active state and a green → cyan gradient for data.
 export const colors = {
-  // Canvas & dark surfaces
-  bg: '#2A2A30',
-  elevated: '#313138',
-  elevated2: '#36363E',
-  elevated3: '#40404A',
-  line: '#3A3A42',
+  // Light canvas & surfaces
+  bg: '#EEF1F5',
+  elevated: '#FFFFFF',
+  elevated2: '#E3E7EC',
+  elevated3: '#D7DCE3',
+  line: '#DCE1E7',
 
-  // Text on dark
-  text: '#FFFFFF',
-  textMuted: '#9A9AA5',
-  textFaint: '#5E5E69',
+  // Text on the light canvas
+  text: '#1D1D23',
+  textMuted: '#6A6F7B',
+  textFaint: '#9CA2AD',
 
-  // Cards (same graphite family; "ink" is text on a card)
-  card: '#34343C',
-  cardAlt: '#3C3C45',
-  cardFade: '#2E2E35',
+  // Charcoal cards ("ink" is text on a card)
+  card: '#2A2A30',
+  cardAlt: '#36363E',
+  cardFade: '#232328',
   ink: '#FFFFFF',
   inkMuted: '#9A9AA5',
-  inkLine: '#44444D',
+  inkLine: '#3A3A42',
 
   // Chips / badges that sit on a card
-  chip: '#25252B',
+  chip: '#1E1E23',
 
   // True white paper — only where contrast must be dark-on-white (QR codes)
   paper: '#FFFFFF',
@@ -31,7 +31,9 @@ export const colors = {
 
   // Accents
   accent: '#1EB7EB',
+  accentStrong: '#0A7FB0', // cyan dark enough for text/outlines on the light canvas
   green: '#1ED58A',
+  greenStrong: '#0B8A57', // green for text on the light canvas
 
   // Status
   danger: '#F2484E',
@@ -42,7 +44,7 @@ export const colors = {
   gradient: ['#1ED58A', '#1FC7B6', '#1EB7EB'],
 
   // Web presentation stage behind the phone frame
-  stage: '#C9D6DF',
+  stage: '#2A2A30',
 };
 
 // Data tones: [start, end] of a waveform / gauge gradient, keyed by metric tone.

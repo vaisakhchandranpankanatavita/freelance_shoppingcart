@@ -9,7 +9,7 @@ export default function StatCard({ icon, label, value, delta, index = 0, style }
   return (
     <Animated.View entering={enter(index)} style={[styles.card, style]}>
       <View style={styles.iconBox}>
-        <Icon name={icon} size={18} color={colors.text} />
+        <Icon name={icon} size={18} color={colors.ink} />
       </View>
       <Text style={styles.value} numberOfLines={1} adjustsFontSizeToFit>
         {value}

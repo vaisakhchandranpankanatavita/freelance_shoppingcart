@@ -6,8 +6,11 @@ import { colors } from '../theme';
 import { spring } from '../theme/motion';
 
 // Borderless tabs with a cyan outlined thumb that springs between options.
+// tone: 'light' (on the light canvas) or 'dark' (inside a charcoal card).
 // options: [{ key, label, icon? }]; `compact` for inline toggles (Month / Year).
-export default function SegmentedControl({ options, value, onChange, style, compact = false }) {
+export default function SegmentedControl({ options, value, onChange, style, compact = false, tone = 'light' }) {
+  const onDark = tone === 'dark';
+  const accent = onDark ? colors.accent : colors.accentStrong;
   const [width, setWidth] = useState(0);
   const index = Math.max(0, options.findIndex((o) => o.key === value));
   const segment = width ? width / options.length : 0;
@@ -27,12 +30,12 @@ export default function SegmentedControl({ options, value, onChange, style, comp
     >
       {segment ? (
         <Animated.View
-          style={[styles.thumb, compact && styles.thumbCompact, { width: segment }, thumbStyle]}
+          style={[styles.thumb, compact && styles.thumbCompact, { width: segment, borderColor: accent }, thumbStyle]}
         />
       ) : null}
       {options.map((o) => {
         const active = o.key === value;
-        const fg = active ? colors.accent : colors.text;
+        const fg = active ? accent : onDark ? colors.ink : colors.text;
         return (
           <Pressable
             key={o.key}
@@ -62,7 +65,6 @@ const styles = StyleSheet.create({
     left: 0,
     borderRadius: 8,
     borderWidth: 1.5,
-    borderColor: colors.accent,
   },
   thumbCompact: { borderRadius: 6, borderWidth: 1 },
   item: {

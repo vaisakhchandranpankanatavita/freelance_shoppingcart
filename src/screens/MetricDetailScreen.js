@@ -28,7 +28,7 @@ export default function MetricDetailScreen({ navigation, route }) {
   const [branch, setBranch] = useState(0);
   const [period, setPeriod] = useState(periods[0]);
   const item = width * 0.5;
-  const gauge = Math.min(width - spacing.lg * 2, 340);
+  const gauge = Math.min(width - spacing.lg * 2 - spacing.md * 2, 320);
 
   const pager = useRef(null);
   const x = useSharedValue(0);
@@ -86,14 +86,16 @@ export default function MetricDetailScreen({ navigation, route }) {
             </Animated.View>
 
             <Animated.View entering={ZoomIn.springify().damping(16).stiffness(120)} style={styles.gauge}>
-              <Gauge
-                value={detail.values[period][branch]}
-                max={detail.max}
-                unit={detail.unit}
-                size={gauge}
-                from={from}
-                to={to}
-              />
+              <View style={styles.gaugeCard}>
+                <Gauge
+                  value={detail.values[period][branch]}
+                  max={detail.max}
+                  unit={detail.unit}
+                  size={gauge}
+                  from={from}
+                  to={to}
+                />
+              </View>
             </Animated.View>
 
             <Animated.View entering={FadeIn.delay(250).duration(400)} style={styles.periods}>
@@ -152,7 +154,8 @@ const styles = StyleSheet.create({
   body: { flex: 1, paddingTop: spacing.lg },
   pagerTitle: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4, textAlign: 'center' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: spacing.md },
-  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accent },
+  dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accentStrong },
   gauge: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  gaugeCard: { padding: spacing.md, borderRadius: 32, backgroundColor: colors.card },
   periods: { width: 260, alignSelf: 'center', marginBottom: spacing.xxl },
 });

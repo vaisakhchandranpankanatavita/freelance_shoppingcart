@@ -7,7 +7,7 @@ import PressableScale from '../components/PressableScale';
 import MetricCard from '../components/MetricCard';
 import LineChart from '../components/LineChart';
 import SegmentedControl from '../components/SegmentedControl';
-import { colors, spacing } from '../theme';
+import { colors, radius, spacing } from '../theme';
 import { enter } from '../theme/motion';
 import { useAuth } from '../context/AuthContext';
 import { metrics, statistic, topSelling } from '../data/dashboardData';
@@ -94,21 +94,24 @@ export default function DashboardScreen({ navigation }) {
           <View style={styles.carouselPlaceholder} />
         )}
 
-        <Animated.View entering={enter(3)} style={[styles.section, styles.row]}>
-          <Text style={styles.sectionTitle}>Statistic</Text>
-          <SegmentedControl
-            compact
-            style={styles.toggle}
-            options={[
-              { key: 'Month', label: 'Month' },
-              { key: 'Year', label: 'Year' },
-            ]}
-            value={period}
-            onChange={setPeriod}
-          />
-        </Animated.View>
-        <Animated.View entering={enter(4)} style={styles.chart}>
-          <LineChart series={statistic[period]} />
+        <Animated.View entering={enter(3)} style={styles.panel}>
+          <View style={styles.row}>
+            <Text style={[styles.sectionTitle, styles.onCard]}>Statistic</Text>
+            <SegmentedControl
+              compact
+              tone="dark"
+              style={styles.toggle}
+              options={[
+                { key: 'Month', label: 'Month' },
+                { key: 'Year', label: 'Year' },
+              ]}
+              value={period}
+              onChange={setPeriod}
+            />
+          </View>
+          <View style={styles.chart}>
+            <LineChart series={statistic[period]} />
+          </View>
         </Animated.View>
 
         <Animated.Text entering={enter(5)} style={[styles.sectionTitle, styles.section]}>
@@ -126,7 +129,7 @@ export default function DashboardScreen({ navigation }) {
               }
             >
               <View style={styles.shortcutRing}>
-                <Icon name={s.icon} size={22} color={colors.accent} />
+                <Icon name={s.icon} size={22} color={colors.accentStrong} />
               </View>
               <Text style={styles.shortcutLabel} numberOfLines={1}>
                 {s.label}
@@ -141,7 +144,7 @@ export default function DashboardScreen({ navigation }) {
         {topSelling.map((d, i) => (
           <Animated.View key={d.id} entering={enter(i + 7)} style={styles.product}>
             <View style={styles.productIcon}>
-              <Icon name={d.icon} size={20} color={colors.green} />
+              <Icon name={d.icon} size={20} color={colors.greenStrong} />
             </View>
             <View style={{ flex: 1, marginLeft: spacing.md }}>
               <Text style={styles.productName}>{d.name}</Text>
@@ -165,7 +168,7 @@ const styles = StyleSheet.create({
   },
   title: { color: colors.text, fontSize: 26, fontWeight: '800', letterSpacing: -0.6 },
   subtitle: { color: colors.text, fontSize: 14, marginTop: 4 },
-  name: { color: colors.accent, fontWeight: '700' },
+  name: { color: colors.accentStrong, fontWeight: '700' },
 
   carousel: { marginTop: spacing.xl },
   carouselContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, gap: GAP },
@@ -174,8 +177,16 @@ const styles = StyleSheet.create({
   section: { paddingHorizontal: spacing.lg, marginTop: spacing.xl },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: colors.text, fontSize: 20, fontWeight: '700', letterSpacing: -0.4 },
+  onCard: { color: colors.ink },
   toggle: { width: 128 },
-  chart: { paddingHorizontal: spacing.lg, marginTop: spacing.md },
+  panel: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    backgroundColor: colors.card,
+  },
+  chart: { marginTop: spacing.md },
 
   shortcuts: {
     flexDirection: 'row',
@@ -190,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: 1.5,
     borderColor: colors.line,
-    backgroundColor: colors.card,
+    backgroundColor: colors.elevated,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -203,18 +214,18 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     padding: spacing.md,
     borderRadius: 8,
-    backgroundColor: colors.card,
+    backgroundColor: colors.elevated,
   },
   productIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: colors.green,
+    borderColor: colors.greenStrong,
     alignItems: 'center',
     justifyContent: 'center',
   },
   productName: { color: colors.text, fontSize: 15, fontWeight: '600' },
   productMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  productProfit: { color: colors.green, fontSize: 14, fontWeight: '700' },
+  productProfit: { color: colors.greenStrong, fontSize: 14, fontWeight: '700' },
 });

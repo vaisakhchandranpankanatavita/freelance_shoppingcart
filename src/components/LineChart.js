@@ -35,7 +35,7 @@ function smoothPath(p) {
   return d;
 }
 
-// Area line chart: the curve sweeps in left→right, morphs between series, and a
+// Area line chart (drawn for a charcoal card): the curve sweeps in left→right, morphs between series, and a
 // tooltip springs between points as you tap or drag across the plot.
 export default function LineChart({
   series,
@@ -121,7 +121,7 @@ export default function LineChart({
               {ticks.map((t) => {
                 const y = PAD_TOP + plotH - (t / max) * plotH;
                 return (
-                  <Line key={t} x1={0} x2={plotW} y1={y} y2={y} stroke={colors.line} strokeDasharray="4 5" strokeWidth={1} />
+                  <Line key={t} x1={0} x2={plotW} y1={y} y2={y} stroke={colors.inkLine} strokeDasharray="4 5" strokeWidth={1} />
                 );
               })}
             </Svg>
@@ -172,7 +172,7 @@ const HALO = 14;
 
 const styles = StyleSheet.create({
   axis: { width: AXIS },
-  axisText: { color: colors.textFaint, fontSize: 11, fontWeight: '600' },
+  axisText: { color: colors.inkMuted, fontSize: 11, fontWeight: '600', opacity: 0.7 },
   yLabel: { position: 'absolute', left: 0, lineHeight: 14 },
   reveal: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
   xAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bubbleText: { color: colors.text, fontSize: 12, fontWeight: '800' },
+  bubbleText: { color: colors.ink, fontSize: 12, fontWeight: '800' },
   caret: {
     width: 0,
     height: 0,

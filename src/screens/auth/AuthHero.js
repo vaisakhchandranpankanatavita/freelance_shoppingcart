@@ -31,7 +31,7 @@ export default function AuthHero({ title, switchLabel, switchIcon, onSwitch }) {
 
       <View style={[styles.row, { marginTop: insets.top + spacing.lg }]}>
         <View style={styles.mark} accessibilityLabel="Grocery">
-          <Icon name="basket" size={20} color={colors.text} />
+          <Icon name="basket" size={20} color={colors.ink} />
         </View>
         {onSwitch ? (
           <PressableScale onPress={onSwitch} style={styles.switch} accessibilityLabel={switchLabel}>
