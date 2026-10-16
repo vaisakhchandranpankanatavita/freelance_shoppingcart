@@ -1,118 +1,106 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
+  withRepeat,
   withTiming,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg from 'react-native-svg';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AuthHero, { AUTH_SHELF_TOP } from '../screens/auth/AuthHero';
-import { SCENE_H, Shelf, shelfFit } from '../screens/auth/ShelfScene';
-import { colors } from '../theme';
+import Icon from './Icon';
+import { colors, fonts } from '../theme';
 import { loaderExit } from '../theme/motion';
 
-const RAMP = 0.9; // seconds for the rows to reach full speed
-const SPEED = { upper: 210, lower: 290 }; // px/s, both rightwards; the lower row is quicker for depth
-const GLIDE = 1100; // ms the Sign in title and brand take to fade out
-const UPPER_H = 120; // scene units: the upper shelf is the top 120 of the 400×210 artwork
+// Three soft discs in the brand gradient, each breathing (scale) and turning (rotate) on its
+// own loop period so the cluster drifts rather than ticking in lockstep — a calm "lava lamp"
+// read instead of a literal shape morph, built from plain transforms (cheap, no path morphing).
+// x/y are offsets from the center of the `FIELD` box below; the blur on top of the whole box
+// is what turns these crisp discs into a soft glow.
+const FIELD = 300;
+const ORBS = [
+  { size: 220, x: -40, y: -30, scalePeriod: 5200, rotatePeriod: 15000, opacity: 0.35 },
+  { size: 190, x: 50, y: 20, scalePeriod: 6400, rotatePeriod: 21000, opacity: 0.3 },
+  { size: 160, x: -10, y: 50, scalePeriod: 4600, rotatePeriod: 12000, opacity: 0.4 },
+];
 
-const smooth = (x) => {
-  'worklet';
-  const c = Math.min(1, Math.max(0, x));
-  return c * c * (3 - 2 * c);
-};
+function Orb({ size, x, y, scalePeriod, rotatePeriod, opacity }) {
+  const scale = useSharedValue(0);
+  const rotate = useSharedValue(0);
 
-// Distance a row has flowed after `t` seconds: eases up to full speed, then constant.
-const travelled = (t, v) => {
-  'worklet';
-  return t < RAMP ? (v * t * t) / (2 * RAMP) : v * (t - RAMP / 2);
-};
+  useEffect(() => {
+    scale.value = withRepeat(withTiming(1, { duration: scalePeriod, easing: Easing.inOut(Easing.sin) }), -1, true);
+    rotate.value = withRepeat(withTiming(1, { duration: rotatePeriod, easing: Easing.linear }), -1, false);
+  }, []);
 
-// One shelf of the Sign in artwork, drawn twice side by side so it can slide right forever:
-// when it has moved one width, the second copy sits exactly where the first started.
-function Row({ group, width, height, viewBox, clock }) {
-  const v = SPEED[group];
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: (travelled(clock.value, v) % width) - width }],
+    transform: [{ scale: 0.85 + scale.value * 0.3 }, { rotate: `${rotate.value * 360}deg` }],
   }));
+  const position = {
+    left: FIELD / 2 - size / 2 + x,
+    top: FIELD / 2 - size / 2 + y,
+  };
+
   return (
-    <Animated.View style={[styles.row, { width: width * 2, height }, style]}>
-      {[0, 1].map((k) => (
-        <Svg key={k} width={width} height={height} viewBox={viewBox} preserveAspectRatio="xMidYMax slice">
-          <Shelf group={group} />
-        </Svg>
-      ))}
+    <Animated.View style={[styles.orb, position, { width: size, height: size, borderRadius: size / 2, opacity }, style]}>
+      <LinearGradient colors={colors.gradient} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={StyleSheet.absoluteFill} />
     </Animated.View>
   );
 }
 
-// Post-login transition built from the Sign in hero itself: the title and brand fade, then the
-// very same two shelves — exactly the Sign in image's width, height and position — stay put and
-// slide to the right as endless loops until the app is ready. Progress runs along the bottom, as on the splash.
-export default function LoginLoader({ duration = 3600 }) {
-  // Sized from its own layout, not the window: on desktop web the app sits in a narrow phone frame.
-  const [{ width }, setSize] = useState({ width: 0 });
+// Post-login loader: no longer tied to the Sign in artwork. A calm cluster of brand-gradient
+// orbs breathes behind the basket mark (same glyph/chip Splash and the auth hero use) while a
+// headline settles in and the bottom pill fills — a loader with its own identity, not a frozen
+// Sign in screen with motion layered on top.
+export default function LoginLoader({ duration = 3600, label = 'Setting up your store' }) {
   const insets = useSafeAreaInsets();
-  const clock = useSharedValue(0); // seconds since the loader opened
-  const glide = useSharedValue(0); // 0 = Sign in hero shown, 1 = hero faded out
+  const mark = useSharedValue(0);
+  const headline = useSharedValue(0);
   const progress = useSharedValue(0);
 
   useEffect(() => {
-    clock.value = withTiming((duration + 2000) / 1000, { duration: duration + 2000, easing: Easing.linear });
-    glide.value = withTiming(1, { duration: GLIDE, easing: Easing.inOut(Easing.cubic) });
+    mark.value = withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) });
+    headline.value = withDelay(250, withTiming(1, { duration: 600, easing: Easing.out(Easing.cubic) }));
     progress.value = withTiming(1, { duration, easing: Easing.inOut(Easing.cubic) });
   }, []);
 
-  // Sign in draws the 400×210 scene at scale `s` in a 210-tall box, bottom-aligned, so on wide
-  // screens its top `y0` scene units are cropped. Draw exactly the same window, split per shelf.
-  const { s, ty } = shelfFit(width || 1);
-  const top = insets.top + AUTH_SHELF_TOP; // where Sign in draws the shelves
-  const y0 = -ty / s;
-  const upperTop = Math.min(y0, UPPER_H);
-  const lowerTop = Math.max(y0, UPPER_H);
-  const upperH = (UPPER_H - upperTop) * s;
-  const lowerH = (SCENE_H - lowerTop) * s;
-
-  const heroStyle = useAnimatedStyle(() => ({ opacity: 1 - smooth(glide.value / 0.35) }));
+  const markStyle = useAnimatedStyle(() => ({
+    opacity: 0.72 + mark.value * 0.28,
+    transform: [{ scale: 0.75 + mark.value * 0.25 }],
+  }));
+  const headlineStyle = useAnimatedStyle(() => ({
+    opacity: 0.72 + headline.value * 0.28,
+    transform: [{ translateY: (1 - headline.value) * 10 }],
+  }));
   const progressStyle = useAnimatedStyle(() => ({ width: `${progress.value * 100}%` }));
 
   return (
     <Animated.View
       exiting={loaderExit}
       style={styles.fill}
-      onLayout={(e) => setSize(e.nativeEvent.layout)}
       accessibilityRole="progressbar"
       accessibilityLabel="Signing you in"
     >
-      {/* The Sign in hero, frozen: brand, title and empty shelves. */}
-      <Animated.View style={[styles.hero, heroStyle]} pointerEvents="none">
-        <AuthHero
-          still
-          title="Sign in"
-          subtitle="Open your counter for today's shift."
-          switchLabel="Sign up"
-          switchIcon="person-circle-outline"
-          onSwitch={() => {}}
-        />
-      </Animated.View>
+      <View style={styles.center}>
+        <View style={styles.orbField} pointerEvents="none">
+          {ORBS.map((orb, i) => (
+            <Orb key={i} {...orb} />
+          ))}
+          {/* Softens the discs into a blurred glow rather than crisp overlapping circles. */}
+          <BlurView intensity={40} tint="light" style={StyleSheet.absoluteFill} />
+        </View>
 
-      {width ? (
-        <Animated.View style={[styles.stage, { top, width, height: upperH + lowerH }]} pointerEvents="none">
-          {upperH > 0 ? (
-            <View style={{ width, height: upperH, overflow: 'hidden' }}>
-              <Row group="upper" width={width} height={upperH} viewBox={`0 ${upperTop} 400 ${UPPER_H - upperTop}`} clock={clock} />
-            </View>
-          ) : null}
-          <View style={{ width, height: lowerH, overflow: 'hidden' }}>
-            <Row group="lower" width={width} height={lowerH} viewBox={`0 ${lowerTop} 400 ${SCENE_H - lowerTop}`} clock={clock} />
-          </View>
+        <Animated.View style={[styles.mark, markStyle]}>
+          <Icon name="basket" size={40} color={colors.ink} />
         </Animated.View>
-      ) : null}
 
-      <View style={styles.progressTrack} pointerEvents="none">
+        <Animated.Text style={[styles.headline, headlineStyle]}>{label}</Animated.Text>
+      </View>
+
+      <View style={[styles.progressTrack, { bottom: insets.bottom + 40 }]} pointerEvents="none">
         <Animated.View style={[styles.progressFill, progressStyle]}>
           <LinearGradient
             colors={colors.gradient}
@@ -127,14 +115,37 @@ export default function LoginLoader({ duration = 3600 }) {
 }
 
 const styles = StyleSheet.create({
-  // Same charcoal as the Sign in hero, so the hand-off is one continuous surface.
-  fill: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.card, overflow: 'hidden' },
-  hero: { position: 'absolute', top: 0, left: 0, right: 0 },
-  stage: { position: 'absolute', left: 0 },
-  row: { flexDirection: 'row' },
+  fill: { flex: 1, backgroundColor: colors.bg, overflow: 'hidden' },
+  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  orbField: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -FIELD / 2,
+    marginLeft: -FIELD / 2,
+    width: FIELD,
+    height: FIELD,
+    overflow: 'hidden',
+    borderRadius: FIELD / 2,
+  },
+  orb: { position: 'absolute' },
+  mark: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: colors.chip,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headline: {
+    marginTop: 18,
+    color: colors.ink,
+    fontSize: 17,
+    fontFamily: fonts.displayBold,
+    letterSpacing: -0.2,
+  },
   progressTrack: {
     position: 'absolute',
-    bottom: 40,
     left: '50%',
     marginLeft: -60,
     width: 120,

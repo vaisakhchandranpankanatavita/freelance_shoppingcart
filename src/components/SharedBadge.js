@@ -20,6 +20,6 @@ export default function SharedBadge({ tag, icon, letter, size = 44, radius = siz
 }
 
 const styles = StyleSheet.create({
-  badge: { backgroundColor: colors.card, alignItems: 'center', justifyContent: 'center' },
+  badge: { backgroundColor: colors.chip, alignItems: 'center', justifyContent: 'center' },
   letter: { fontFamily: fonts.display, color: colors.ink },
 });

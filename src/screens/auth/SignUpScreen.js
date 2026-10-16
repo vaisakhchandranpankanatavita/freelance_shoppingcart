@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -56,7 +55,7 @@ export default function SignUpScreen({ navigation }) {
       <PatternBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         {/* The hero stays put; only the form below it scrolls. */}
         <AuthHero
@@ -77,16 +76,16 @@ export default function SignUpScreen({ navigation }) {
             <ReceiptHeader title="New staff" />
             <Perforation />
             <Animated.View entering={enter(3)}>
-              <InputField label="Username" icon="person-outline" placeholder="Username" value={username} onChangeText={setUsername} />
+              <InputField label="Username" icon="person-outline" placeholder="Username" value={username} onChangeText={setUsername} center />
             </Animated.View>
             <Animated.View entering={enter(4)}>
-              <InputField label="Login ID" icon="at-outline" placeholder="Login ID" value={loginId} onChangeText={setLoginId} />
+              <InputField label="Login ID" icon="at-outline" placeholder="Login ID" value={loginId} onChangeText={setLoginId} center />
             </Animated.View>
             <Animated.View entering={enter(5)}>
-              <InputField label="Password" icon="lock-closed-outline" placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+              <InputField label="Password" icon="lock-closed-outline" placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry center />
             </Animated.View>
             <Animated.View entering={enter(6)}>
-              <InputField label="Confirm password" icon="lock-closed-outline" placeholder="Confirm password" value={confirm} onChangeText={setConfirm} secureTextEntry />
+              <InputField label="Confirm password" icon="lock-closed-outline" placeholder="Confirm password" value={confirm} onChangeText={setConfirm} secureTextEntry center />
             </Animated.View>
 
             <Animated.View entering={enter(7)}>
@@ -97,7 +96,7 @@ export default function SignUpScreen({ navigation }) {
                 accessibilityState={{ checked: agree }}
               >
                 <View style={[styles.checkbox, agree && styles.checkboxOn]}>
-                  {agree ? <Icon name="checkmark" size={14} color={colors.ink} /> : null}
+                  {agree ? <Icon name="checkmark" size={14} color={colors.onAccent} /> : null}
                 </View>
                 <Text style={styles.rememberText}>
                   I agree to the <Text style={styles.link}>Terms & Conditions</Text> and{' '}
@@ -142,7 +141,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxOn: { backgroundColor: colors.card, borderColor: colors.card },
+  checkboxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   rememberText: { color: colors.textMuted, fontSize: 13, flex: 1 },
   link: { color: colors.text, fontWeight: '700' },
 });

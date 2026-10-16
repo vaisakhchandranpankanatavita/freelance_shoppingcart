@@ -8,7 +8,9 @@ import { spring } from '../theme/motion';
 // Borderless tabs with a cyan outlined thumb that springs between options.
 // tone: 'light' (on the light canvas) or 'dark' (inside a charcoal card).
 // options: [{ key, label, icon? }]; `compact` for inline toggles (Month / Year).
-export default function SegmentedControl({ options, value, onChange, style, compact = false, tone = 'light' }) {
+// `underline`: swaps the boxed thumb for a thin bottom underline under the active label only
+// (same indicator language as the dashboard's Quick actions picker), for a lighter-weight tab row.
+export default function SegmentedControl({ options, value, onChange, style, compact = false, tone = 'light', underline = false }) {
   const onDark = tone === 'dark';
   const accent = onDark ? colors.accent : colors.accentStrong;
   const [width, setWidth] = useState(0);
@@ -28,10 +30,13 @@ export default function SegmentedControl({ options, value, onChange, style, comp
       onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
       accessibilityRole="tablist"
     >
-      {segment ? (
+      {segment && !underline ? (
         <Animated.View
           style={[styles.thumb, compact && styles.thumbCompact, { width: segment, borderColor: accent }, thumbStyle]}
         />
+      ) : null}
+      {segment && underline ? (
+        <Animated.View style={[styles.underlineThumb, { width: segment, backgroundColor: accent }, thumbStyle]} />
       ) : null}
       {options.map((o) => {
         const active = o.key === value;
@@ -39,14 +44,14 @@ export default function SegmentedControl({ options, value, onChange, style, comp
         return (
           <Pressable
             key={o.key}
-            style={[styles.item, compact && styles.itemCompact]}
+            style={[styles.item, (compact || underline) && styles.itemCompact]}
             onPress={() => onChange(o.key)}
             accessibilityRole="tab"
             accessibilityState={{ selected: active }}
             accessibilityLabel={o.label}
           >
             {o.icon ? <Icon name={o.icon} size={16} color={fg} /> : null}
-            <Text style={[styles.text, compact && styles.textCompact, { color: fg }]} numberOfLines={1}>
+            <Text style={[styles.text, (compact || underline) && styles.textCompact, { color: fg }]} numberOfLines={1}>
               {o.label}
             </Text>
           </Pressable>
@@ -67,6 +72,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   thumbCompact: { borderRadius: 6, borderWidth: 1 },
+  underlineThumb: { position: 'absolute', bottom: 0, left: 0, height: 2, borderRadius: 1 },
   item: {
     flex: 1,
     height: 44,
@@ -74,9 +80,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
+    minWidth: 0,
   },
   itemCompact: { height: 30 },
-  text: { fontSize: 14, fontWeight: '600', letterSpacing: -0.1 },
+  text: { fontSize: 14, fontWeight: '600', letterSpacing: -0.1, flexShrink: 1, minWidth: 0 },
   textCompact: { fontSize: 13 },
 });

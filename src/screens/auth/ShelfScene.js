@@ -11,15 +11,17 @@ import Animated, {
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Ellipse, G, Path, Rect, Text as SvgText } from 'react-native-svg';
-import { colors } from '../../theme';
+import { colors, illustration } from '../../theme';
 
-const TOMATO = '#F2484E';
-const MUSTARD = '#F2B33D';
-const LEAF = '#1ED58A';
-const MILK = '#F4F6F8';
-const PLANK = '#3C3C45';
-const EDGE = '#4A4A54';
-const SHADE = '#1E1E23';
+// Scene-local aliases of the shared illustration tones (theme/index.js) — kept short since
+// they're used dozens of times below as SVG `fill` props.
+const TOMATO = illustration.tomato;
+const MUSTARD = illustration.mustard;
+const LEAF = illustration.leaf;
+const MILK = illustration.milk;
+const PLANK = illustration.plank;
+const EDGE = illustration.edge;
+const SHADE = illustration.shade;
 const BEAM = 64;
 
 export const SCENE_W = 400;

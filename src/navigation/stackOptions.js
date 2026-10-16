@@ -7,9 +7,17 @@ export const stackScreenOptions = {
   animation: 'slide_from_right',
   animationTypeForReplace: 'push',
   fullScreenGestureEnabled: true,
+  freezeOnBlur: true,
   contentStyle: { backgroundColor: colors.bg },
 };
 
 // Pages a list row morphs into (see SharedBadge): a cross-fade lets the shared badge fly between
 // the two screens instead of riding a sliding one.
 export const sharedElementOptions = { animation: 'fade', animationDuration: 380 };
+
+export const bottomSheetScreenOptions = {
+  presentation: 'transparentModal',
+  animation: 'slide_from_bottom',
+  contentStyle: { backgroundColor: 'transparent' },
+  headerShown: false,
+};

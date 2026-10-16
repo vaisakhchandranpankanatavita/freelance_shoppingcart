@@ -120,5 +120,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
-  logoutText: { marginLeft: spacing.sm, color: colors.danger, fontWeight: '600' },
+  logoutText: { marginLeft: spacing.sm, color: colors.dangerStrong, fontWeight: '600' },
 });

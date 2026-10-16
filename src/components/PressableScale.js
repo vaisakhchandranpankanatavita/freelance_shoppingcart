@@ -20,9 +20,14 @@ export default function PressableScale({
   onPressOut,
   disabled,
   children,
+  sharedScale,
   ...rest
 }) {
-  const scale = useSharedValue(1);
+  const internalScale = useSharedValue(1);
+  // Callers that need to drive their own press feedback (e.g. PrimaryButton's fill color) pass
+  // in a shared value they created, so that animation reads the exact same press timeline this
+  // scale spring runs on, instead of guessing at a second one.
+  const scale = sharedScale ?? internalScale;
   const [focused, setFocused] = useState(false);
   const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 

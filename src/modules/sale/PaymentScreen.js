@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
 import SectionCard from '../../components/SectionCard';
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/PrimaryButton';
@@ -11,10 +11,11 @@ import Heading from '../../components/Heading';
 import BottomBar from '../../components/BottomBar';
 import { colors, spacing, radius } from '../../theme';
 import { enter } from '../../theme/motion';
+import { rupees, rupeesExact } from '../../utils/format';
 
 const DELIVERY_LABELS = {
-  pickup: 'Store Pickup',
-  home: 'Home Delivery',
+  pickup: 'Store pickup',
+  home: 'Home delivery',
   express: 'Express',
 };
 
@@ -38,7 +39,7 @@ export default function PaymentScreen({ route, navigation }) {
   } = route.params || {};
 
   const [feeStr, setFeeStr] = useState(String(DEFAULT_FEE[delivery] ?? 0));
-  const fee = Number(feeStr) || 0;
+  const fee = delivery === 'pickup' ? 0 : Number(feeStr) || 0;
   const subtotal = Number(total) || 0;
   const grand = useMemo(() => +(subtotal + fee).toFixed(2), [subtotal, fee]);
 
@@ -57,12 +58,11 @@ export default function PaymentScreen({ route, navigation }) {
   };
 
   return (
-    <Screen>
-      <ScreenHeader title="Bill summary" onBack={() => navigation.goBack()} />
-
+    <Screen header={<ScreenHeader title="Bill summary" onBack={() => navigation.goBack()} />}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <SectionCard icon="person-outline" title="Customer" index={0}>
-          <Row label="Name" value={customer} />
+          <Row label="Name" value={customer || 'Walk-in'} />
           {phone ? <Row label="Phone" value={phone} /> : null}
         </SectionCard>
 
@@ -79,12 +79,14 @@ export default function PaymentScreen({ route, navigation }) {
                   <Text style={styles.itemName} numberOfLines={1}>{i.name}</Text>
                   <Text style={styles.itemMeta}>Qty {i.qty} × ₹{i.price}</Text>
                 </View>
-                <Text style={styles.itemTotal}>₹{(i.qty * i.price).toLocaleString()}</Text>
+                <Text style={styles.itemTotal}>{rupees(i.qty * i.price)}</Text>
               </View>
             ))
           )}
         </SectionCard>
 
+        {/* Pickup has no fee to set — only show the field when the order is going out. */}
+        {delivery === 'pickup' ? null : (
         <SectionCard icon={DELIVERY_ICONS[delivery]} title={DELIVERY_LABELS[delivery]} index={2}>
           <InputField
             label="Delivery fee (₹)"
@@ -96,21 +98,25 @@ export default function PaymentScreen({ route, navigation }) {
             style={{ marginBottom: 0 }}
           />
         </SectionCard>
+        )}
 
         <SectionCard tone="light" fade index={3}>
-          <Row light label="Subtotal" value={`₹${subtotal.toLocaleString()}`} />
-          <Row light label="Delivery fee" value={`₹${fee.toLocaleString()}`} />
+          <Row light label="Subtotal" value={rupeesExact(subtotal)} />
+          {delivery === 'pickup' ? null : <Row light label="Delivery fee" value={rupeesExact(fee)} />}
           <View style={styles.divider} />
           <Text style={styles.grandLabel}>Grand total</Text>
           <Heading level="title" tone="light" style={styles.grandValue}>
-            ₹{grand.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {rupeesExact(grand)}
           </Heading>
         </SectionCard>
       </ScrollView>
 
+      {/* bottom clears the floating TabBar (position:'absolute', bottom:0), same convention as
+          DashboardScreen's BottomBar - this screen sits inside SaleNavigator's tab stack. */}
       <BottomBar>
-        <PrimaryButton title={`Checkout • ₹${grand.toLocaleString()}`} icon="card-outline" variant="light" onPress={onCheckout} />
+        <PrimaryButton style={{ flex: 1 }} title={`Take payment · ${rupees(grand)}`} icon="card-outline" variant="light" onPress={onCheckout} />
       </BottomBar>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
@@ -125,7 +131,7 @@ function Row({ label, value, light }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 150 },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: 150 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
   rowLabel: { color: colors.textMuted, fontSize: 14 },
   rowValue: { color: colors.text, fontSize: 14, fontWeight: '600' },

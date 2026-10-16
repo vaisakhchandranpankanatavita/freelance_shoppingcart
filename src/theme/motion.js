@@ -7,12 +7,9 @@ export const pressSpring = { damping: 16, stiffness: 420, mass: 0.6 };
 
 export const timing = { duration: 380, easing: Easing.out(Easing.cubic) };
 
-// Staggered entrance for stacked content; index is capped so long lists don't lag.
-export const enter = (index = 0) =>
-  FadeInDown.delay(Math.min(index, 8) * 55)
-    .springify()
-    .damping(18)
-    .stiffness(160);
+// Light entrance for stacked content. No per-item stagger delay: lists should
+// appear immediately rather than trickling in item by item.
+export const enter = () => FadeInDown.duration(160).easing(Easing.out(Easing.cubic));
 
 export const fadeIn = (delay = 0) => FadeIn.delay(delay).duration(320);
 export const fadeOut = FadeOut.duration(160);

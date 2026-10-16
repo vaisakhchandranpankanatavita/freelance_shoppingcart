@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from './Icon';
-import { colors, radius, spacing } from '../theme';
+import PressableScale from './PressableScale';
+import { colors, radius, shadows, spacing } from '../theme';
 
 // Pill-shaped picker that matches InputField: tap to choose from `options`
 // ([{ value, label }]) in a bottom sheet. `disabled` greys it out (e.g. a state
@@ -17,15 +20,17 @@ export default function SelectField({
   disabled = false,
   style,
 }) {
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => String(o.value) === String(value));
 
   return (
     <View style={[styles.container, style]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
-      <Pressable
+      <PressableScale
         onPress={() => setOpen(true)}
         disabled={disabled}
+        scaleTo={0.98}
         style={[styles.wrapper, error && styles.wrapperError, disabled && { opacity: 0.5 }]}
         accessibilityRole="button"
         accessibilityLabel={`${label || placeholder}: ${selected?.label ?? 'not selected'}`}
@@ -35,12 +40,17 @@ export default function SelectField({
           {selected?.label ?? placeholder}
         </Text>
         <Icon name="chevron-forward" size={18} color={colors.textFaint} />
-      </Pressable>
+      </PressableScale>
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <Pressable style={styles.sheet} onPress={() => {}}>
+          <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} pointerEvents="none" />
+          <View style={styles.backdropTint} pointerEvents="none" />
+          <Pressable
+            style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, spacing.xl) }]}
+            onPress={() => {}}
+          >
             <Text style={styles.sheetTitle}>{label || placeholder}</Text>
             <FlatList
               data={options}
@@ -50,7 +60,8 @@ export default function SelectField({
               renderItem={({ item }) => {
                 const on = String(item.value) === String(value);
                 return (
-                  <Pressable
+                  <PressableScale
+                    scaleTo={0.98}
                     style={styles.option}
                     onPress={() => {
                       onChange(item.value);
@@ -61,7 +72,7 @@ export default function SelectField({
                   >
                     <Text style={[styles.optionText, on && styles.optionOn]}>{item.label}</Text>
                     {on ? <Icon name="checkmark" size={18} color={colors.accentStrong} /> : null}
-                  </Pressable>
+                  </PressableScale>
                 );
               }}
             />
@@ -73,42 +84,43 @@ export default function SelectField({
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: spacing.md },
+  container: { marginBottom: spacing.sm },
   label: {
     color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: spacing.sm,
-    marginLeft: spacing.lg,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+    marginLeft: spacing.xs,
   },
   wrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.elevated2,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    borderRadius: 999,
-    paddingHorizontal: 20,
-    height: 56,
+    backgroundColor: colors.elevated,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    height: 44,
   },
   wrapperError: { borderColor: colors.danger },
   icon: { marginRight: spacing.sm },
-  value: { flex: 1, fontSize: 16, fontWeight: '500', color: colors.text },
-  error: { color: colors.danger, fontSize: 12, marginTop: 6, marginLeft: spacing.lg },
+  value: { flex: 1, fontSize: 15, fontWeight: '500', color: colors.text },
+  error: { color: colors.dangerStrong, fontSize: 11, marginTop: 4, marginLeft: spacing.sm },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
+  backdropTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.25)' },
   sheet: {
     backgroundColor: colors.elevated,
     borderTopLeftRadius: radius.xl,
     borderTopRightRadius: radius.xl,
     padding: spacing.lg,
-    paddingBottom: spacing.xl,
+    ...shadows.lg,
   },
   sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 14,
+    paddingVertical: 11,
     borderBottomWidth: 1,
     borderBottomColor: colors.line,
   },

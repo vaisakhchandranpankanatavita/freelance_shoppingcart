@@ -72,7 +72,7 @@ export default function Receipt({ children, style }) {
   const [w, setW] = useState(0);
   return (
     <Animated.View
-      entering={FadeInDown.delay(150).springify().damping(18).stiffness(120)}
+      entering={FadeInDown.delay(150).duration(260)}
       style={[styles.wrap, style]}
       onLayout={(e) => setW(e.nativeEvent.layout.width)}
     >
@@ -102,6 +102,9 @@ export function ReceiptHeader({ title }) {
 const styles = StyleSheet.create({
   wrap: {
     marginHorizontal: spacing.lg,
+    // Keep the slip phone-sized on wide (web) screens instead of stretching its inputs edge to edge.
+    maxWidth: 440,
+    ...Platform.select({ web: { width: 'calc(100% - 32px)', alignSelf: 'center' }, default: {} }),
     shadowColor: '#1D1D23',
     shadowOpacity: 0.12,
     shadowRadius: 18,

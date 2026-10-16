@@ -1,10 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeInUp, FadeOut, FadeOutUp, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from './Icon';
 import PressableScale from './PressableScale';
-import { colors, fonts, radius, spacing } from '../theme';
+import { colors, fonts, radius, shadows, spacing } from '../theme';
 
 // In-app replacement for Alert.alert (a silent no-op on web):
 //   toast({ title, message?, tone: 'success' | 'error' | 'info' })  — brief, non-blocking
@@ -62,8 +62,9 @@ export function FeedbackProvider({ children }) {
             style={[styles.toastWrap, { top: insets.top + spacing.sm }]}
             pointerEvents="box-none"
           >
-            <Pressable
+            <PressableScale
               onPress={() => setToastState(null)}
+              scaleTo={0.97}
               style={styles.toast}
               accessibilityRole="alert"
               accessibilityLiveRegion="polite"
@@ -76,15 +77,15 @@ export function FeedbackProvider({ children }) {
                 <Text style={styles.toastTitle}>{toastState.title}</Text>
                 {toastState.message ? <Text style={styles.toastMessage}>{toastState.message}</Text> : null}
               </View>
-            </Pressable>
+            </PressableScale>
           </Animated.View>
         ) : null}
 
         {dialog ? (
-          <Animated.View entering={FadeIn.duration(160)} exiting={FadeOut.duration(140)} style={styles.scrim}>
+          <View style={styles.scrim}>
+            <View style={styles.scrimTint} pointerEvents="none" />
             <Pressable style={StyleSheet.absoluteFill} onPress={() => closeDialog(false)} accessibilityLabel="Dismiss" />
-            <Animated.View
-              entering={ZoomIn.springify().damping(18).stiffness(220)}
+            <View
               style={styles.dialog}
               accessibilityRole="alert"
               accessibilityViewIsModal
@@ -99,11 +100,18 @@ export function FeedbackProvider({ children }) {
                   style={[styles.dialogBtn, dialog.destructive ? styles.dialogDanger : styles.dialogPrimary]}
                   onPress={() => closeDialog(true)}
                 >
-                  <Text style={styles.dialogConfirmText}>{dialog.confirmLabel || 'Confirm'}</Text>
+                  <Text
+                    style={[
+                      styles.dialogConfirmText,
+                      dialog.destructive ? styles.dialogDangerText : styles.dialogPrimaryText,
+                    ]}
+                  >
+                    {dialog.confirmLabel || 'Confirm'}
+                  </Text>
                 </PressableScale>
               </View>
-            </Animated.View>
-          </Animated.View>
+            </View>
+          </View>
         ) : null}
       </View>
     </FeedbackContext.Provider>
@@ -111,7 +119,7 @@ export function FeedbackProvider({ children }) {
 }
 
 const styles = StyleSheet.create({
-  layer: { ...StyleSheet.absoluteFillObject, zIndex: 100 },
+  layer: { ...StyleSheet.absoluteFillObject, zIndex: 200, elevation: 200 },
 
   toastWrap: { position: 'absolute', left: spacing.lg, right: spacing.lg, alignItems: 'center' },
   toast: {
@@ -124,11 +132,9 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    shadowColor: '#000',
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 10,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadows.lg,
   },
   toastIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   toastText: { flex: 1 },
@@ -137,25 +143,30 @@ const styles = StyleSheet.create({
 
   scrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(29,29,35,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
     padding: spacing.xl,
   },
+  scrimTint: { ...StyleSheet.absoluteFillObject, backgroundColor: `${colors.shadow}66` },
   dialog: {
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 300,
     backgroundColor: colors.elevated,
     borderRadius: radius.xl,
-    padding: spacing.xl,
+    padding: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadows.lg,
   },
   dialogTitle: { color: colors.text, fontSize: 22, lineHeight: 28, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
   dialogMessage: { color: colors.textMuted, fontSize: 15, lineHeight: 22, marginTop: spacing.sm },
   dialogActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.xl },
-  dialogBtn: { flex: 1, height: 48, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center' },
+  dialogBtn: { flex: 1, height: 48, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', ...shadows.sm },
   dialogCancel: { backgroundColor: colors.elevated2 },
-  dialogPrimary: { backgroundColor: colors.card },
+  dialogPrimary: { backgroundColor: colors.accent },
   dialogDanger: { backgroundColor: colors.danger },
   dialogCancelText: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  dialogConfirmText: { color: colors.ink, fontSize: 15, fontWeight: '700' },
+  dialogConfirmText: { fontSize: 15, fontWeight: '700' },
+  dialogPrimaryText: { color: colors.onAccent },
+  dialogDangerText: { color: colors.onAccent },
 });

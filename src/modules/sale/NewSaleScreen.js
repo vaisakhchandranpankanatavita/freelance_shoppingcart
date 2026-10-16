@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TextInput, Platform, KeyboardAvoidingView } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,7 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
+import SectionCard from '../../components/SectionCard';
 import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/PrimaryButton';
 import PressableScale from '../../components/PressableScale';
@@ -17,9 +18,10 @@ import IconButton from '../../components/IconButton';
 import SegmentedControl from '../../components/SegmentedControl';
 import GradientBorder from '../../components/GradientBorder';
 import { useFeedback } from '../../components/Feedback';
-import { colors, spacing, radius, fonts } from '../../theme';
+import { colors, spacing, radius, shadows, fonts } from '../../theme';
 import { enter, fadeIn, fadeOut, layout, pressSpring } from '../../theme/motion';
-import { getCatalog } from './services';
+import { rupees } from '../../utils/format';
+import { editSale, findByBarcode, getCatalog, getSale, searchCatalog, searchCustomer } from './services';
 
 const DELIVERY_TYPES = [
   { key: 'pickup', label: 'Pickup', icon: 'storefront-outline' },
@@ -27,18 +29,24 @@ const DELIVERY_TYPES = [
   { key: 'express', label: 'Express', icon: 'flash-outline' },
 ];
 
-export default function NewSaleScreen({ navigation }) {
+export default function NewSaleScreen({ navigation, route }) {
+  const saleId = route?.params?.saleId;
+  const isEdit = saleId != null;
   const { toast } = useFeedback();
   const scroller = useRef(null);
   const [customer, setCustomer] = useState('');
   const [phone, setPhone] = useState('');
+  const [lookingUp, setLookingUp] = useState(false);
   const [delivery, setDelivery] = useState('pickup');
-  const [mode] = useState('Cash');
+  const [mode, setMode] = useState('Cash');
+  const [fee, setFee] = useState(0);
   const [search, setSearch] = useState('');
+  const [barcode, setBarcode] = useState('');
   const [catalog, setCatalog] = useState([]);
   const [catalogError, setCatalogError] = useState('');
   const [cart, setCart] = useState([]);
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     getCatalog()
@@ -46,12 +54,102 @@ export default function NewSaleScreen({ navigation }) {
       .catch((e) => setCatalogError(e.message || 'Could not load products.'));
   }, []);
 
+  // Edit mode (row 72): prefill from the bill's own detail instead of starting an empty cart.
+  useEffect(() => {
+    if (!isEdit) return;
+    getSale(saleId)
+      .then((s) => {
+        setCustomer(s.customer === 'Walk-in' ? '' : s.customer);
+        setPhone(s.phone || '');
+        setDelivery(s.delivery || 'pickup');
+        setMode(s.mode || 'Cash');
+        setFee(Number(s.fee) || 0);
+        setCart(s.cart || []);
+      })
+      .catch((e) => toast({ tone: 'error', title: "Couldn't load this bill", message: e.message || 'Try again.' }));
+  }, [isEdit, saleId]);
+
+  // Server-side name search (row 65) once the customer has typed enough to be worth a request;
+  // short queries stay on the already-loaded catalog's client-side filter below.
+  useEffect(() => {
+    if (search.trim().length < 2) return;
+    let live = true;
+    const t = setTimeout(() => {
+      searchCatalog(search).then((rows) => {
+        if (live && rows.length) setCatalog((c) => {
+          const known = new Set(c.map((x) => x.id));
+          return [...c, ...rows.filter((r) => !known.has(r.id))];
+        });
+      }).catch(() => {});
+    }, 300);
+    return () => { live = false; clearTimeout(t); };
+  }, [search]);
+
   const filtered = useMemo(
     () => catalog.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())),
     [catalog, search]
   );
 
+  const onLookupCustomer = async (num) => {
+    setLookingUp(true);
+    try {
+      const found = await searchCustomer(num);
+      if (found?.name) {
+        setCustomer(found.name);
+        toast({ tone: 'success', title: 'Customer found', message: found.name });
+      } else {
+        toast({ tone: 'info', title: 'New customer', message: 'No previous bills for this number.' });
+      }
+    } catch (e) {
+      // Non-fatal — billing continues with whatever name is typed manually.
+    } finally {
+      setLookingUp(false);
+    }
+  };
+
+  useEffect(() => {
+    if (/^\d{10}$/.test(phone)) onLookupCustomer(phone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phone]);
+
+  const onAddByBarcode = async () => {
+    const code = barcode.trim();
+    if (!code) return;
+    try {
+      const matches = await findByBarcode(code);
+      if (matches.length) {
+        addToCart(matches[0]);
+        setBarcode('');
+      } else {
+        toast({ tone: 'error', title: 'Not found', message: `No product matches barcode ${code}.` });
+      }
+    } catch (e) {
+      toast({ tone: 'error', title: "Couldn't look up barcode", message: e.message || 'Try again.' });
+    }
+  };
+
+  // The catalog row's `qty` is units on the shelf; the cart line's `qty` is units being sold.
+  // Selling more than is on the shelf would drive stock negative, so the cart stops there.
+  const stockOf = (id) => catalog.find((c) => c.id === id)?.qty;
+  const atLimit = (id, inCart) => {
+    const stock = stockOf(id);
+    return stock != null && inCart >= stock;
+  };
+  const warnLimit = (item) => {
+    const stock = stockOf(item.id) ?? 0;
+    toast({
+      tone: 'error',
+      title: stock > 0 ? `Only ${stock} in stock` : `${item.name} is out of stock`,
+      message: stock > 0 ? `${item.name} can't go above ${stock} on this bill.` : 'Restock it before billing.',
+    });
+  };
+
   const addToCart = (item) => {
+    const inCart = cart.find((x) => x.id === item.id)?.qty ?? 0;
+    if (atLimit(item.id, inCart)) {
+      warnLimit(item);
+      return;
+    }
     setCart((c) => {
       const exists = c.find((x) => x.id === item.id);
       if (exists) return c.map((x) => (x.id === item.id ? { ...x, qty: x.qty + 1 } : x));
@@ -61,6 +159,11 @@ export default function NewSaleScreen({ navigation }) {
   };
 
   const changeQty = (id, delta) => {
+    const line = cart.find((x) => x.id === id);
+    if (delta > 0 && line && atLimit(id, line.qty)) {
+      warnLimit(line);
+      return;
+    }
     setCart((c) =>
       c
         .map((x) => (x.id === id ? { ...x, qty: x.qty + delta } : x))
@@ -79,14 +182,11 @@ export default function NewSaleScreen({ navigation }) {
   const bumpStyle = useAnimatedStyle(() => ({ transform: [{ scale: bump.value }] }));
 
   const onCheckout = async () => {
+    // Most counter sales are walk-ins: name and phone are optional, but a phone that is
+    // entered has to be a full 10-digit number so it can find the customer next time.
     const nextErrors = {};
-    if (!customer.trim()) {
-      nextErrors.customer = 'Customer name is required';
-    }
-    if (!phone.trim()) {
-      nextErrors.phone = 'Phone number is required';
-    } else if (!/^\d{10}$/.test(phone)) {
-      nextErrors.phone = 'Phone number must be 10 digits';
+    if (phone && !/^\d{10}$/.test(phone)) {
+      nextErrors.phone = 'Enter all 10 digits, or clear the field';
     }
     if (cart.length === 0) {
       nextErrors.cart = 'Add at least one product to the cart';
@@ -96,14 +196,38 @@ export default function NewSaleScreen({ navigation }) {
       toast({
         tone: 'error',
         title: 'Complete the bill first',
-        message: nextErrors.customer || nextErrors.phone || nextErrors.cart,
+        message: nextErrors.phone || nextErrors.cart,
       });
-      if (nextErrors.customer || nextErrors.phone) scroller.current?.scrollTo({ y: 0, animated: true });
+      if (nextErrors.phone) scroller.current?.scrollTo({ y: 0, animated: true });
+      return;
+    }
+
+    if (isEdit) {
+      setSaving(true);
+      try {
+        await editSale(saleId, {
+          customer: customer.trim() || 'Walk-in',
+          phone,
+          delivery,
+          mode,
+          paymentMethod: mode,
+          cart,
+          total,
+          fee,
+          grandTotal: total + fee,
+        });
+        toast({ tone: 'success', title: 'Bill updated' });
+        navigation.goBack();
+      } catch (e) {
+        toast({ tone: 'error', title: "Couldn't update the bill", message: e.message || 'Try again.' });
+      } finally {
+        setSaving(false);
+      }
       return;
     }
 
     navigation.navigate('Payment', {
-      customer: customer.trim(),
+      customer: customer.trim() || 'Walk-in',
       phone,
       delivery,
       mode,
@@ -114,45 +238,48 @@ export default function NewSaleScreen({ navigation }) {
   };
 
   return (
-    <Screen>
-      <ScreenHeader title="New bill" onBack={() => navigation.goBack()} />
-
+    <Screen
+      bottomSheet={!isEdit}
+      header={
+        <ScreenHeader
+          title={isEdit ? 'Edit bill' : 'New bill'}
+          backIcon={isEdit ? 'arrow-back' : 'close'}
+          onBack={() => navigation.goBack()}
+        />
+      }
+    >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView ref={scroller} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <Animated.Text entering={enter(0)} style={styles.sectionTitle}>Customer</Animated.Text>
-        <Animated.View entering={enter(1)}>
-          <InputField
-            icon="person-outline"
-            placeholder="Customer name"
-            value={customer}
-            error={errors.customer}
-            onChangeText={(v) => {
-              setCustomer(v);
-              if (errors.customer) setErrors((e) => ({ ...e, customer: undefined }));
-            }}
-            autoCapitalize="words"
-          />
-        </Animated.View>
-        <Animated.View entering={enter(2)}>
-          <InputField
-            icon="call-outline"
-            placeholder="Phone number (10 digits)"
-            value={phone}
-            error={errors.phone}
-            onChangeText={(v) => {
-              setPhone(v.replace(/\D/g, '').slice(0, 10));
-              if (errors.phone) setErrors((e) => ({ ...e, phone: undefined }));
-            }}
-            keyboardType="number-pad"
-            maxLength={10}
-          />
-        </Animated.View>
+        <SectionCard title="Customer & delivery" icon="person-outline" index={0}>
+          <View style={styles.row}>
+            <InputField
+              style={styles.cell}
+              icon="person-outline"
+              placeholder="Name — leave empty for walk-in"
+              value={customer}
+              onChangeText={setCustomer}
+              autoCapitalize="words"
+            />
+            <InputField
+              style={styles.cell}
+              icon="call-outline"
+              placeholder="Phone — finds returning customers"
+              value={phone}
+              error={errors.phone}
+              onChangeText={(v) => {
+                setPhone(v.replace(/\D/g, '').slice(0, 10));
+                if (errors.phone) setErrors((e) => ({ ...e, phone: undefined }));
+              }}
+              keyboardType="number-pad"
+              maxLength={10}
+            />
+          </View>
 
-        <Animated.View entering={enter(3)}>
-          <Text style={styles.sectionTitle}>Delivery type</Text>
+          <Text style={styles.deliveryLabel}>Delivery type</Text>
           <SegmentedControl options={DELIVERY_TYPES} value={delivery} onChange={setDelivery} />
-        </Animated.View>
+        </SectionCard>
 
-        <Animated.View entering={enter(4)} style={styles.searchBox}>
+        <Animated.View entering={enter(1)} style={styles.searchBox}>
           <Icon name="search" size={18} color={colors.textMuted} />
           <TextInput
             style={styles.searchInput}
@@ -161,6 +288,20 @@ export default function NewSaleScreen({ navigation }) {
             value={search}
             onChangeText={setSearch}
             accessibilityLabel="Search products"
+          />
+        </Animated.View>
+
+        <Animated.View entering={enter(2)} style={styles.searchBox}>
+          <Icon name="barcode-outline" size={18} color={colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Scan or type a barcode, then Enter"
+            placeholderTextColor={colors.textFaint}
+            value={barcode}
+            onChangeText={setBarcode}
+            onSubmitEditing={onAddByBarcode}
+            returnKeyType="done"
+            accessibilityLabel="Add product by barcode"
           />
         </Animated.View>
 
@@ -176,10 +317,10 @@ export default function NewSaleScreen({ navigation }) {
                 style={styles.cartRow}
               >
                 <Text style={styles.cartName} numberOfLines={1}>{item.name}</Text>
-                <IconButton icon="remove" size={32} variant="soft" onPress={() => changeQty(item.id, -1)} accessibilityLabel={`Remove one ${item.name}`} />
+                <IconButton icon="remove" size={28} variant="soft" onPress={() => changeQty(item.id, -1)} accessibilityLabel={`Remove one ${item.name}`} />
                 <Text style={styles.qty}>{item.qty}</Text>
-                <IconButton icon="add" size={32} variant="soft" onPress={() => changeQty(item.id, 1)} accessibilityLabel={`Add one ${item.name}`} />
-                <Text style={styles.lineTotal}>₹{item.qty * item.price}</Text>
+                <IconButton icon="add" size={28} variant="soft" onPress={() => changeQty(item.id, 1)} accessibilityLabel={`Add one ${item.name}`} />
+                <Text style={styles.lineTotal}>{rupees(item.qty * item.price)}</Text>
               </Animated.View>
             ))}
           </Animated.View>
@@ -189,7 +330,7 @@ export default function NewSaleScreen({ navigation }) {
           <Text style={styles.sectionTitle}>Products</Text>
           {catalogError ? <Text style={styles.catalogError}>{catalogError}</Text> : null}
           {filtered.map((item, i) => (
-            <Animated.View key={item.id} entering={enter(i + 5)} layout={layout}>
+            <Animated.View key={item.id} entering={enter(i + 3)} layout={layout}>
               <PressableScale
                 scaleTo={0.97}
                 style={styles.productRow}
@@ -200,11 +341,18 @@ export default function NewSaleScreen({ navigation }) {
                   <Icon name="cube-outline" size={18} color={colors.text} />
                 </View>
                 <View style={{ flex: 1, marginLeft: spacing.md }}>
-                  <Text style={styles.productName}>{item.name}</Text>
-                  <Text style={styles.productPrice}>₹{item.price}</Text>
+                  <Text style={styles.productName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.productPrice}>
+                    {rupees(item.price)}
+                    {item.qty <= 0 ? (
+                      <Text style={styles.outOfStock}>  ·  Out of stock</Text>
+                    ) : (
+                      <Text>  ·  {item.qty} in stock</Text>
+                    )}
+                  </Text>
                 </View>
                 <View style={styles.plusBtn}>
-                  <Icon name="add" size={18} color={colors.ink} />
+                  <Icon name="add" size={18} color={colors.onAccent} />
                 </View>
               </PressableScale>
             </Animated.View>
@@ -212,7 +360,7 @@ export default function NewSaleScreen({ navigation }) {
         </Animated.View>
       </ScrollView>
 
-      <Animated.View entering={SlideInDown.springify().damping(20).stiffness(160)} style={styles.checkoutBar}>
+      <Animated.View entering={SlideInDown.springify().damping(20).stiffness(160)} style={[styles.checkoutBar, { bottom: spacing.md }]}>
         {errors.cart ? (
           <Animated.Text entering={fadeIn()} style={styles.cartErrorText}>{errors.cart}</Animated.Text>
         ) : null}
@@ -228,69 +376,79 @@ export default function NewSaleScreen({ navigation }) {
             ) : null}
           </View>
           <View style={{ flex: 1, marginLeft: spacing.md }}>
-            <Text style={styles.checkoutLabel}>{items} item{items === 1 ? '' : 's'}</Text>
-            <Text style={styles.checkoutTotal}>₹{total.toLocaleString()}</Text>
+            <Text style={styles.checkoutLabel} numberOfLines={1}>{items} item{items === 1 ? '' : 's'}</Text>
+            <Text style={styles.checkoutTotal} numberOfLines={1} adjustsFontSizeToFit>{rupees(total)}</Text>
           </View>
-          <PrimaryButton title="Generate bill" variant="light" onPress={onCheckout} />
+          <PrimaryButton
+            title={isEdit ? 'Save changes' : 'Review bill'}
+            variant="light"
+            onPress={onCheckout}
+            loading={isEdit ? saving : undefined}
+          />
         </View>
       </Animated.View>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 200 },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.sm, paddingBottom: 190 },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textMuted,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
+    marginTop: spacing.md,
+    marginBottom: 4,
     marginLeft: spacing.sm,
   },
+  row: { flexDirection: 'row', gap: spacing.sm },
+  cell: { flex: 1 },
+  deliveryLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginBottom: 4, marginLeft: spacing.xs },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.elevated2,
-    height: 52,
+    height: 44,
     borderRadius: radius.pill,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.xl,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
   },
   searchInput: {
     flex: 1,
     marginLeft: spacing.sm,
-    fontSize: 15,
+    fontSize: 14,
     color: colors.text,
     paddingVertical: 0,
     ...Platform.select({ web: { outlineStyle: 'none' }, default: {} }),
   },
-  catalogError: { color: colors.danger, fontSize: 13, marginLeft: spacing.sm, marginBottom: spacing.sm },
+  catalogError: { color: colors.dangerStrong, fontSize: 13, marginLeft: spacing.sm, marginBottom: spacing.sm },
   productRow: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.elevated,
     borderWidth: 1,
     borderColor: colors.line,
-    borderRadius: radius.lg,
-    padding: spacing.md,
-    marginBottom: spacing.sm,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+    marginBottom: spacing.xs,
   },
   thumb: {
-    width: 44,
-    height: 44,
-    borderRadius: 14,
+    width: 36,
+    height: 36,
+    borderRadius: 11,
     backgroundColor: colors.elevated3,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  productName: { fontSize: 15, fontWeight: '600', color: colors.text },
-  productPrice: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  productName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  productPrice: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
+  outOfStock: { color: colors.dangerStrong, fontWeight: '600' },
   plusBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: colors.card,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -299,10 +457,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
     backgroundColor: colors.card,
-    padding: spacing.md,
-    paddingLeft: spacing.lg,
-    borderRadius: radius.lg,
-    marginBottom: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.line,
+    padding: spacing.sm,
+    paddingLeft: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.xs,
   },
   cartName: { flex: 1, color: colors.ink, fontSize: 14, fontWeight: '600' },
   qty: { minWidth: 22, textAlign: 'center', fontFamily: fonts.display, color: colors.ink },
@@ -311,15 +471,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: spacing.md,
     right: spacing.md,
-    bottom: spacing.md,
     backgroundColor: colors.card,
     borderRadius: radius.xl,
     padding: spacing.md,
     paddingLeft: spacing.lg,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadows.lg,
   },
   checkoutRow: { flexDirection: 'row', alignItems: 'center' },
   cartErrorText: {
-    color: colors.danger,
+    color: colors.dangerStrong,
     fontSize: 12,
     fontWeight: '600',
     marginBottom: spacing.sm,

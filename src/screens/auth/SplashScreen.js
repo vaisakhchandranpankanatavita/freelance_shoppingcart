@@ -33,6 +33,7 @@ export default function SplashScreen({ navigation }) {
   const tagline = useSharedValue(0);
   const progress = useSharedValue(0);
   const exit = useSharedValue(0);
+  const logoFade = useSharedValue(0); // wordmark/tagline fade — starts exactly as the scene starts its glide up, but finishes quickly
 
   useEffect(() => {
     const t = setTimeout(() => navigation.replace('Login'), DURATION);
@@ -51,6 +52,9 @@ export default function SplashScreen({ navigation }) {
     tagline.value = withDelay(2000, withTiming(1, { duration: 900, easing: ease }));
     progress.value = withDelay(200, withTiming(1, { duration: HOLD, easing: Easing.inOut(Easing.cubic) }));
     exit.value = withDelay(HOLD, withTiming(1, { duration: EXIT, easing: Easing.inOut(Easing.cubic) }));
+    // Same start as `exit` (the scene's glide) so the logo begins fading the instant the
+    // image starts moving up, but on its own quick ease-out so it's gone well before the glide ends.
+    logoFade.value = withDelay(HOLD, withTiming(1, { duration: 500, easing: Easing.out(Easing.cubic) }));
   }, []);
 
   // How far the shelves must travel from where they rest to where Login draws them.
@@ -65,12 +69,12 @@ export default function SplashScreen({ navigation }) {
   measureRef.current = measureScene;
 
   const chromeStyle = useAnimatedStyle(() => ({
-    opacity: 1 - Math.min(1, exit.value * 2.2),
-    transform: [{ translateY: exit.value * -14 }],
+    opacity: 1 - logoFade.value,
+    transform: [{ translateY: logoFade.value * -14 }],
   }));
   const markStyle = useAnimatedStyle(() => ({
-    opacity: mark.value,
-    transform: [{ scale: 0.75 + mark.value * 0.25 }],
+    opacity: mark.value * (1 - logoFade.value),
+    transform: [{ scale: 0.75 + mark.value * 0.25 }, { translateY: logoFade.value * -14 }],
   }));
   const sceneStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: exit.value * sceneDy.value }],

@@ -2,7 +2,8 @@ import React from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, radius } from '../theme';
+import GlassBlur from './GlassBlur';
+import { colors, radius, shadows } from '../theme';
 
 // Neutral frosted canvas for glass cards: soft white and grey light shapes under a heavy blur,
 // no colour. The variation behind the blur is what lets the cards read as glass.
@@ -47,12 +48,27 @@ export function GlassEdge({ height = 110 }) {
   );
 }
 
+const MARGIN_KEYS = ['margin', 'marginTop', 'marginBottom', 'marginLeft', 'marginRight', 'marginHorizontal', 'marginVertical'];
+
 // Frosted-glass surface: translucent white, its own backdrop blur and a bright hairline edge.
+// Shadow lives on an outer wrapper and clipping (for the blur + rounded corners) on the inner
+// one — the two can't share a view, because `overflow: 'hidden'` clips Android's `elevation`
+// shadow down to a hard, visible line instead of a soft spread (same issue SectionCard avoids).
 export function GlassCard({ children, style, intensity = 40 }) {
+  const flat = StyleSheet.flatten(style) || {};
+  const borderRadius = flat.borderRadius ?? radius.lg;
+  const outer = { borderRadius };
+  const inner = { borderRadius };
+  Object.entries(flat).forEach(([k, v]) => {
+    if (MARGIN_KEYS.includes(k)) outer[k] = v;
+    else if (k !== 'borderRadius') inner[k] = v;
+  });
   return (
-    <View style={[styles.card, style]}>
-      <BlurView intensity={intensity} tint="light" style={StyleSheet.absoluteFill} />
-      {children}
+    <View style={[styles.shadowWrap, outer]}>
+      <View style={[styles.card, inner]}>
+        <GlassBlur intensity={intensity} tint="light" style={StyleSheet.absoluteFill} />
+        {children}
+      </View>
     </View>
   );
 }
@@ -60,11 +76,14 @@ export function GlassCard({ children, style, intensity = 40 }) {
 const styles = StyleSheet.create({
   edge: { position: 'absolute', left: 0, right: 0, bottom: 0 },
   blob: { position: 'absolute', borderRadius: 999, opacity: 0.55 },
+  // `backgroundColor` here isn't visual (the inner card paints over it) — Android's `elevation`
+  // on a transparent view falls back to painting a solid grey box instead of a soft shadow, so
+  // every shadow wrapper needs an opaque background matching the canvas behind it.
+  shadowWrap: { backgroundColor: colors.bg, ...shadows.sm },
   card: {
     overflow: 'hidden',
-    borderRadius: radius.lg,
-    backgroundColor: 'rgba(255,255,255,0.34)',
+    backgroundColor: 'rgba(255,255,255,0.62)',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.75)',
+    borderColor: 'rgba(255,255,255,0.85)',
   },
 });

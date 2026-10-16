@@ -1,19 +1,21 @@
 import React, { useCallback, useState } from 'react';
-import { Platform, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Linking, Platform, RefreshControl, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import Animated, { useSharedValue } from 'react-native-reanimated';
+import { useTabBarScrollHandler } from '../../components/tabBarScroll';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT_LARGE } from '../../components/ScreenHeader';
 import SharedBadge from '../../components/SharedBadge';
 import IconButton from '../../components/IconButton';
 import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
 import { useFeedback } from '../../components/Feedback';
-import { colors, radius, spacing } from '../../theme';
+import { colors, radius, shadows, spacing } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
-import { ENTITIES, isActive, listOf } from './entities';
+import { useAuth } from '../../context/AuthContext';
+import { ENTITIES, isActive, listOf, nameOf } from './entities';
 
 // Generic list for branches / categories / brands / suppliers: search, tap to edit,
 // status switch (when the API has one) and delete with confirmation.
@@ -21,16 +23,24 @@ export default function EntityListScreen({ navigation, route }) {
   const config = ENTITIES[route.params.entity];
   const { api } = config;
   const { toast, confirm } = useFeedback();
+  const { can } = useAuth();
+  const canCreate = can('create', route.params.entity);
+  const canUpdate = can('update', route.params.entity);
+  const canDelete = can('delete', route.params.entity);
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState('');
+  const [runningAction, setRunningAction] = useState(null);
+  const scrollY = useSharedValue(0);
+  const onScroll = useTabBarScrollHandler(scrollY);
 
   const load = async () => {
     try {
-      // Rows show `name`; categories and brands carry it as category_name / brand_name.
-      setItems(listOf(await api.list()).map((o) => ({ ...o, name: o[config.nameKey ?? 'name'] ?? o.name })));
+      // Rows show `name`; categories and brands carry it as category_name / brand_name (and
+      // brand rows currently come back shaped as categories — see nameOf's comment in entities.js).
+      setItems(listOf(await api.list()).map((o) => ({ ...o, name: config.displayName ? config.displayName(o) : nameOf(o, config.nameKey) })));
       setError('');
     } catch (e) {
       setError(e.message || 'Check your connection and try again.');
@@ -77,21 +87,37 @@ export default function EntityListScreen({ navigation, route }) {
     }
   };
 
+  const runRowAction = async (item) => {
+    if (!config.rowAction) return;
+    setRunningAction(item.id);
+    try {
+      const res = await config.rowAction.run(item.id);
+      // Response shape for this endpoint isn't documented yet; open it if it looks like a
+      // printable file/link, otherwise just confirm the call succeeded.
+      const url = res?.url ?? res?.data?.url ?? res?.barcode_url ?? res?.path;
+      if (typeof url === 'string' && /^https?:\/\//.test(url)) await Linking.openURL(url);
+      else toast({ tone: 'success', title: config.rowAction.label });
+    } catch (e) {
+      toast({ tone: 'error', title: `Couldn't ${config.rowAction.label.toLowerCase()}`, message: e.message });
+    } finally {
+      setRunningAction(null);
+    }
+  };
+
   const q = search.trim().toLowerCase();
   const shown = q ? items.filter((i) => String(i.name ?? '').toLowerCase().includes(q)) : items;
 
   return (
-    <Screen>
-      <ScreenHeader
-        large
-        title={config.title}
-        onBack={() => navigation.goBack()}
-      />
+    <Screen
+      header={<ScreenHeader large title={config.title} onBack={() => navigation.goBack()} />}
+    >
       <Animated.FlatList
         data={shown}
         keyExtractor={(i) => String(i.id)}
         contentContainerStyle={styles.list}
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         itemLayoutAnimation={layout}
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.text} />}
@@ -119,7 +145,7 @@ export default function EntityListScreen({ navigation, route }) {
                   {sub ? <Text style={styles.sub} numberOfLines={1}>{sub}</Text> : null}
                 </View>
               </PressableScale>
-              {api.toggle ? (
+              {api.toggle && canUpdate ? (
                 <Switch
                   value={isActive(item)}
                   onValueChange={() => toggle(item)}
@@ -127,7 +153,18 @@ export default function EntityListScreen({ navigation, route }) {
                   accessibilityLabel={`${item.name} active`}
                 />
               ) : null}
-              <IconButton icon="trash-outline" variant="light" accessibilityLabel={`Delete ${item.name}`} onPress={() => remove(item)} />
+              {config.rowAction ? (
+                <IconButton
+                  icon={config.rowAction.icon}
+                  variant="light"
+                  disabled={runningAction === item.id}
+                  accessibilityLabel={`${config.rowAction.label} for ${item.name}`}
+                  onPress={() => runRowAction(item)}
+                />
+              ) : null}
+              {canDelete ? (
+                <IconButton icon="trash-outline" variant="light" accessibilityLabel={`Delete ${item.name}`} onPress={() => remove(item)} />
+              ) : null}
             </Animated.View>
           );
         }}
@@ -137,17 +174,19 @@ export default function EntityListScreen({ navigation, route }) {
           ) : q ? (
             <EmptyState icon="search-outline" title="No matches" message={`Nothing matches "${search}".`} />
           ) : (
-            <EmptyState icon={config.icon} title={`No ${config.title.toLowerCase()} yet`} message={`Add your first ${config.singular.toLowerCase()}.`} actionLabel={`Add ${config.singular.toLowerCase()}`} onAction={() => open(undefined)} />
+            <EmptyState icon={config.icon} title={`No ${config.title.toLowerCase()} yet`} message={`Add your first ${config.singular.toLowerCase()}.`} actionLabel={canCreate ? `Add ${config.singular.toLowerCase()}` : undefined} onAction={canCreate ? () => open(undefined) : undefined} />
           )
         }
       />
-      <AddButton label="Add" accessibilityLabel={`Add ${config.singular}`} onPress={() => open(undefined)} />
+      {canCreate ? (
+        <AddButton accessibilityLabel={`Add ${config.singular}`} scrollY={scrollY} onPress={() => open(undefined)} />
+      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: spacing.lg, paddingBottom: 112 },
+  list: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT_LARGE, paddingBottom: 112 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -175,13 +214,14 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: radius.lg,
     marginBottom: spacing.sm,
+    ...shadows.sm,
   },
   main: { flex: 1, flexDirection: 'row', alignItems: 'center' },
   thumb: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: colors.card,
+    backgroundColor: colors.chip,
     alignItems: 'center',
     justifyContent: 'center',
   },

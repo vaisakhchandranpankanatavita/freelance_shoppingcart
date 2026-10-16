@@ -1,22 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
 import SectionCard from '../../components/SectionCard';
 import SegmentedControl from '../../components/SegmentedControl';
 import InputField from '../../components/InputField';
+import PressableScale from '../../components/PressableScale';
 import { useFeedback } from '../../components/Feedback';
 import PrimaryButton from '../../components/PrimaryButton';
 import Heading from '../../components/Heading';
 import BottomBar from '../../components/BottomBar';
 import { colors, spacing, radius, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
+import { rupees, rupeesExact } from '../../utils/format';
 import { addSale } from './services';
-
-const STORE_NAME = 'Grocery Store';
-const STORE_UPI_ID = 'grocerystore@upi';
 
 const MODES = [
   { key: 'Cash', label: 'Cash', icon: 'cash-outline' },
@@ -24,18 +23,17 @@ const MODES = [
   { key: 'Card', label: 'Card', icon: 'card-outline' },
 ];
 
-const CARDS = [
-  { id: 'wallet', brand: 'Wallet', label: 'Store Wallet • ₹200.00', icon: 'wallet-outline' },
-  { id: 'card-mc', brand: 'Mastercard', label: '**** **** **** 4975', icon: 'card' },
-  { id: 'card-visa', brand: 'Visa', label: '**** **** **** 4975', icon: 'card' },
-];
-
-const BANKS = [
-  { id: 'bank-sbi', name: 'SBI' },
-  { id: 'bank-hdfc', name: 'HDFC' },
-];
-
-const money = (n) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// What the cashier is most likely handed for this total: the exact amount, then the next round
+// note values above it. Tapping one fills "Amount received" so the change is worked out for them.
+const cashSuggestions = (grand) => {
+  const steps = [10, 50, 100, 500, 2000];
+  const out = new Set([Math.ceil(grand)]);
+  steps.forEach((s) => {
+    const next = Math.ceil(grand / s) * s;
+    if (next > grand) out.add(next);
+  });
+  return [...out].sort((a, b) => a - b).slice(0, 4);
+};
 
 export default function CheckoutScreen({ route, navigation }) {
   const {
@@ -52,54 +50,53 @@ export default function CheckoutScreen({ route, navigation }) {
 
   const { toast } = useFeedback();
   const [mode, setMode] = useState(initialMode);
-  const [selectedCard, setSelectedCard] = useState('wallet');
-  const [selectedBank, setSelectedBank] = useState('bank-sbi');
   const [tendered, setTendered] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const cashChange = Math.max(0, (Number(tendered) || 0) - grand);
+  const received = Number(tendered) || 0;
+  const short = mode === 'Cash' && received > 0 && received < grand;
+  const cashChange = Math.max(0, received - grand);
 
   const onPay = async () => {
-    let paymentMethod = mode;
-    if (mode === 'Card') paymentMethod = selectedCard;
-    if (mode === 'UPI') paymentMethod = selectedBank;
-
-    if (mode === 'Cash' && Number(tendered) > 0 && Number(tendered) < grand) {
-      toast({ tone: 'error', title: 'Not enough cash', message: 'The amount received is less than the total.' });
+    if (short) {
+      toast({ tone: 'error', title: 'Not enough cash', message: `${rupeesExact(grand - received)} more is needed.` });
       return;
     }
 
     try {
       setSubmitting(true);
       const saved = await addSale({
-        customer, phone, delivery, mode, items,
+        customer, phone, delivery, mode, items, cart,
         total: subtotal, fee, grandTotal: grand,
-        paymentMethod,
+        paymentMethod: mode,
       });
       navigation.replace('BillPreview', {
-        invoiceId: saved?.id,
-        date: saved?.date,
-        customer, phone, delivery, mode, paymentMethod,
+        invoiceId: saved?.id || undefined,
+        date: saved?.date || undefined,
+        customer, phone, delivery, mode,
         cart, items,
         total: subtotal, fee, grand,
       });
     } catch (e) {
-      toast({ tone: 'error', title: 'Payment failed', message: e.message || 'Try again.' });
+      toast({ tone: 'error', title: "Couldn't save the bill", message: e.message || 'Try again.' });
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <Screen>
-      <ScreenHeader title="Checkout" onBack={() => navigation.goBack()} />
-
+    <Screen header={<ScreenHeader title="Take payment" onBack={() => navigation.goBack()} />}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <SectionCard tone="light" fade index={0} style={styles.totalCard}>
-          <Text style={styles.totalLabel}>Total amount to be paid</Text>
+          <Text style={styles.totalLabel}>To collect from {customer || 'the customer'}</Text>
           <Heading level="display" tone="light" style={styles.totalValue} numberOfLines={1} adjustsFontSizeToFit>
-            ₹{money(grand)}
+            {rupeesExact(grand)}
           </Heading>
+          <Text style={styles.totalMeta}>
+            {items} item{items === 1 ? '' : 's'}
+            {fee ? ` + ${rupees(fee)} delivery` : ''}
+          </Text>
         </SectionCard>
 
         <Animated.View entering={enter(1)}>
@@ -109,109 +106,108 @@ export default function CheckoutScreen({ route, navigation }) {
         {/* Keyed by mode: the outgoing panel fades out, the new one rises in. */}
         <Animated.View key={mode} entering={enter(0)} exiting={fadeOut} layout={layout}>
           {mode === 'Cash' ? (
-            <SectionCard icon="cash-outline" title="Cash payment">
-              <Text style={styles.hint}>Collect ₹{grand.toLocaleString()} from the customer.</Text>
+            <SectionCard icon="cash-outline" title="Cash received">
+              <View style={styles.quickRow}>
+                {cashSuggestions(grand).map((amt) => {
+                  const active = received === amt;
+                  return (
+                    <PressableScale
+                      key={amt}
+                      style={[styles.quick, active && styles.quickActive]}
+                      onPress={() => setTendered(String(amt))}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                      accessibilityLabel={`Received ${rupees(amt)}`}
+                    >
+                      <Text style={[styles.quickText, active && styles.quickTextActive]}>{rupees(amt)}</Text>
+                    </PressableScale>
+                  );
+                })}
+              </View>
               <InputField
                 label="Amount received (₹)"
                 value={tendered}
                 onChangeText={(v) => setTendered(v.replace(/[^0-9.]/g, ''))}
                 keyboardType="decimal-pad"
-                placeholder="0"
+                placeholder="Leave empty if exact"
+                error={short ? `${rupeesExact(grand - received)} short` : undefined}
               />
               <View style={styles.changeRow}>
                 <Text style={styles.changeLabel}>Change to return</Text>
-                <Text style={styles.changeValue}>₹{money(cashChange)}</Text>
+                <Text style={styles.changeValue}>{rupeesExact(cashChange)}</Text>
               </View>
             </SectionCard>
           ) : null}
 
           {mode === 'UPI' ? (
-            <SectionCard icon="qr-code-outline" title="Scan to pay via UPI">
-              <View style={styles.qrBox}>
-                <Icon name="qr-code" size={150} color={colors.paperInk} />
-                <Text style={styles.qrStore}>{STORE_NAME}</Text>
-                <Text style={styles.qrUpi}>{STORE_UPI_ID}</Text>
-                <View style={styles.qrAmountPill}>
-                  <Text style={styles.qrAmountText}>₹{Number(grand).toFixed(2)}</Text>
-                </View>
-              </View>
-              <Text style={styles.hint}>
-                Ask the customer to scan this QR with any UPI app to pay ₹{Number(grand).toFixed(2)}.
-              </Text>
-              <Text style={styles.subLabel}>Or choose bank (Net Banking)</Text>
-              {BANKS.map((b) => (
-                <OptionRow
-                  key={b.id}
-                  icon="business-outline"
-                  title={b.name}
-                  active={selectedBank === b.id}
-                  onPress={() => setSelectedBank(b.id)}
-                />
-              ))}
+            <SectionCard icon="qr-code-outline" title="UPI payment">
+              <Step n={1} text="Show the customer the store's UPI QR at the counter." />
+              <Step n={2} text={`Ask them to pay ${rupeesExact(grand)}.`} />
+              <Step n={3} text="Confirm the payment has arrived in your UPI app, then save the bill." last />
             </SectionCard>
           ) : null}
 
           {mode === 'Card' ? (
-            <SectionCard icon="card-outline" title="Choose a card">
-              {CARDS.map((c) => (
-                <OptionRow
-                  key={c.id}
-                  icon={c.icon}
-                  title={c.brand}
-                  subtitle={c.label}
-                  active={selectedCard === c.id}
-                  onPress={() => setSelectedCard(c.id)}
-                />
-              ))}
+            <SectionCard icon="card-outline" title="Card payment">
+              <Step n={1} text={`Enter ${rupeesExact(grand)} on the card machine.`} />
+              <Step n={2} text="Let the customer tap, insert or swipe their card." />
+              <Step n={3} text="Once the machine prints an approved slip, save the bill." last />
             </SectionCard>
           ) : null}
         </Animated.View>
       </ScrollView>
 
+      {/* bottom clears the floating TabBar (position:'absolute', bottom:0), same convention as
+          DashboardScreen's BottomBar - this screen sits inside SaleNavigator's tab stack. */}
       <BottomBar>
         <PrimaryButton
-          title={submitting ? 'Processing…' : `Pay ₹${Number(grand).toLocaleString()}`}
+          style={{ flex: 1 }}
+          title={submitting ? 'Saving bill…' : `Paid by ${mode} · Save bill`}
           variant="light"
-          icon="lock-closed"
+          icon="checkmark"
           onPress={onPay}
           loading={submitting}
         />
       </BottomBar>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }
 
-function OptionRow({ icon, title, subtitle, active, onPress }) {
+// These really are ordered steps the cashier follows, so they're numbered.
+function Step({ n, text, last }) {
   return (
-    <Pressable
-      style={[styles.option, active && styles.optionActive]}
-      onPress={onPress}
-      accessibilityRole="radio"
-      accessibilityState={{ checked: active }}
-      accessibilityLabel={title}
-    >
-      <View style={styles.optionIcon}>
-        <Icon name={icon} size={16} color={colors.text} />
+    <View style={[styles.step, last && { marginBottom: 0 }]}>
+      <View style={styles.stepNum}>
+        <Text style={styles.stepNumText}>{n}</Text>
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.optionTitle}>{title}</Text>
-        {subtitle ? <Text style={styles.optionSubtitle}>{subtitle}</Text> : null}
-      </View>
-      <View style={[styles.radioOuter, active && styles.radioOuterActive]}>
-        {active ? <Animated.View entering={enter(0)} style={styles.radioInner} /> : null}
-      </View>
-    </Pressable>
+      <Text style={styles.stepText}>{text}</Text>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: 150 },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: 150 },
   totalCard: { padding: 24 },
   totalLabel: { color: colors.inkMuted, fontSize: 14 },
   totalValue: { marginTop: spacing.sm },
+  totalMeta: { color: colors.inkMuted, fontSize: 13, marginTop: spacing.xs },
   modes: { marginBottom: spacing.md },
-  hint: { color: colors.textMuted, fontSize: 13, marginBottom: spacing.md },
-  subLabel: { color: colors.textMuted, fontSize: 13, fontWeight: '600', marginTop: spacing.sm, marginBottom: spacing.sm },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.md },
+  quick: {
+    minWidth: 72,
+    height: 40,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.line,
+    backgroundColor: colors.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActive: { backgroundColor: colors.accent, borderColor: colors.accent },
+  quickText: { color: colors.text, fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  quickTextActive: { color: colors.onAccent },
   changeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -222,54 +218,15 @@ const styles = StyleSheet.create({
   },
   changeLabel: { color: colors.textMuted, fontSize: 13 },
   changeValue: { color: colors.text, fontSize: 20, fontFamily: fonts.display },
-  qrBox: {
-    alignSelf: 'center',
-    alignItems: 'center',
-    padding: spacing.xl,
-    backgroundColor: colors.paper,
-    borderRadius: radius.xl,
-    marginBottom: spacing.md,
-  },
-  qrStore: { fontSize: 15, fontFamily: fonts.display, color: colors.paperInk, marginTop: spacing.sm },
-  qrUpi: { fontSize: 12, color: colors.textFaint, marginTop: 2 },
-  qrAmountPill: {
-    marginTop: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: 6,
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md, marginBottom: spacing.md },
+  stepNum: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     backgroundColor: colors.chip,
-    borderRadius: radius.pill,
-  },
-  qrAmountText: { color: colors.ink, fontSize: 14, fontFamily: fonts.display },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-    marginBottom: spacing.xs,
-  },
-  optionActive: { borderColor: colors.text, backgroundColor: colors.elevated2 },
-  optionIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: colors.elevated3,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  optionTitle: { fontSize: 15, color: colors.text, fontWeight: '600' },
-  optionSubtitle: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  radioOuter: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
-    borderColor: colors.textFaint,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  radioOuterActive: { borderColor: colors.text },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.text },
+  stepNumText: { color: colors.accentStrong, fontSize: 13, fontWeight: '700' },
+  stepText: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 20, paddingTop: 3 },
 });

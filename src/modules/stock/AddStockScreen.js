@@ -1,36 +1,59 @@
-import React, { useState } from 'react';
-import { StyleSheet, ScrollView, View, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, ScrollView, Text, View, KeyboardAvoidingView, Platform } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
+import SectionCard from '../../components/SectionCard';
 import InputField from '../../components/InputField';
+import SelectField from '../../components/SelectField';
 import PrimaryButton from '../../components/PrimaryButton';
 import { useFeedback } from '../../components/Feedback';
-import { spacing } from '../../theme';
+import { colors, spacing } from '../../theme';
 import { enter } from '../../theme/motion';
-import { addStockItem } from './services';
+import { addStockItem, getStockCategories } from './services';
 
-// Each inner array is one row; two fields share a row.
-const ROWS = [
-  [{ key: 'name', label: 'Item name', icon: 'pricetag-outline', placeholder: 'e.g. Basmati Rice 5kg', autoCapitalize: 'words' }],
-  [{ key: 'category', label: 'Category', icon: 'albums-outline', placeholder: 'e.g. Grains', autoCapitalize: 'words' }],
-  [
-    { key: 'qty', label: 'Quantity', icon: 'cube-outline', placeholder: '0', keyboardType: 'numeric' },
-    { key: 'unit', label: 'Unit', icon: 'options-outline', placeholder: 'pcs, kg' },
-  ],
-  [
-    { key: 'price', label: 'Price per unit (₹)', icon: 'cash-outline', placeholder: '0', keyboardType: 'numeric' },
-    { key: 'lowAt', label: 'Low stock at', icon: 'alert-circle-outline', placeholder: '5', keyboardType: 'numeric' },
-  ],
+// Each inner array is one row; two fields share a row. Rows are split into two titled
+// sections — what the item is, then how much of it and what it costs — instead of one
+// long undifferentiated stack of fields.
+const SECTIONS = [
+  {
+    title: 'Item',
+    icon: 'pricetag-outline',
+    rows: [
+      [{ key: 'name', label: 'Item name', icon: 'pricetag-outline', placeholder: 'e.g. Basmati Rice 5kg', autoCapitalize: 'words' }],
+    ],
+  },
+  {
+    title: 'Stock & pricing',
+    icon: 'cube-outline',
+    rows: [
+      [
+        { key: 'qty', label: 'Quantity', icon: 'cube-outline', placeholder: '0', keyboardType: 'numeric' },
+        { key: 'unit', label: 'Unit', icon: 'options-outline', placeholder: 'pcs, kg' },
+      ],
+      [
+        { key: 'price', label: 'Price per unit (₹)', icon: 'cash-outline', placeholder: '0', keyboardType: 'numeric' },
+        { key: 'lowAt', label: 'Low stock at', icon: 'alert-circle-outline', placeholder: '5', keyboardType: 'numeric' },
+      ],
+    ],
+  },
 ];
 
 const isPositive = (v) => Number.isFinite(Number(v)) && Number(v) > 0;
 
 export default function AddStockScreen({ navigation }) {
   const { toast } = useFeedback();
-  const [form, setForm] = useState({ name: '', category: '', qty: '', unit: 'pcs', price: '', lowAt: '' });
+  const [form, setForm] = useState({ name: '', categoryId: '', qty: '', unit: 'pcs', price: '', lowAt: '' });
+  const [categories, setCategories] = useState([]);
+  const [formError, setFormError] = useState('');
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getStockCategories()
+      .then(setCategories)
+      .catch((e) => setFormError(e.message || 'Could not load categories.'));
+  }, []);
 
   const set = (k, v) => {
     setForm((f) => ({ ...f, [k]: v }));
@@ -40,6 +63,7 @@ export default function AddStockScreen({ navigation }) {
   const onSave = async () => {
     const next = {};
     if (!form.name.trim()) next.name = 'Enter the item name';
+    if (!form.categoryId) next.categoryId = 'Choose a category';
     if (!isPositive(form.qty)) next.qty = 'Enter a quantity';
     if (!isPositive(form.price)) next.price = 'Enter a price';
     setErrors(next);
@@ -49,7 +73,7 @@ export default function AddStockScreen({ navigation }) {
     try {
       await addStockItem({
         name: form.name.trim(),
-        category: form.category.trim() || 'General',
+        categoryId: form.categoryId,
         qty: Number(form.qty),
         unit: form.unit.trim() || 'pcs',
         price: Number(form.price),
@@ -65,30 +89,52 @@ export default function AddStockScreen({ navigation }) {
   };
 
   return (
-    <Screen>
-      <ScreenHeader title="Add stock item" onBack={() => navigation.goBack()} />
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <Screen
+      bottomSheet
+      sheetHeight="64%"
+      header={<ScreenHeader title="Add stock item" backIcon="close" onBack={() => navigation.goBack()} />}
+    >
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          {ROWS.map((row, r) => (
-            <Animated.View key={r} entering={enter(r)} style={styles.row}>
-              {row.map((f) => (
-                <InputField
-                  key={f.key}
-                  style={styles.cell}
-                  label={f.label}
-                  icon={f.icon}
-                  placeholder={f.placeholder}
-                  value={form[f.key]}
-                  error={errors[f.key]}
-                  onChangeText={(v) => set(f.key, v)}
-                  keyboardType={f.keyboardType}
-                  autoCapitalize={f.autoCapitalize}
-                />
+          {formError ? <Text style={styles.formError}>{formError}</Text> : null}
+          {SECTIONS.map((section, s) => (
+            <SectionCard key={section.title} title={section.title} icon={section.icon} index={s}>
+              {section.rows.map((row, r) => (
+                <View key={r} style={[styles.row, r > 0 && styles.rowSpacing]}>
+                  {row.map((f) => (
+                    <InputField
+                      key={f.key}
+                      style={styles.cell}
+                      label={f.label}
+                      icon={f.icon}
+                      placeholder={f.placeholder}
+                      value={form[f.key]}
+                      error={errors[f.key]}
+                      onChangeText={(v) => set(f.key, v)}
+                      keyboardType={f.keyboardType}
+                      autoCapitalize={f.autoCapitalize}
+                    />
+                  ))}
+                </View>
               ))}
-            </Animated.View>
+              {section.title === 'Item' ? (
+                <View style={[styles.row, styles.rowSpacing]}>
+                  <SelectField
+                    style={styles.cell}
+                    label="Category"
+                    icon="albums-outline"
+                    placeholder="Choose category"
+                    value={form.categoryId}
+                    options={categories}
+                    onChange={(v) => set('categoryId', v)}
+                    error={errors.categoryId}
+                  />
+                </View>
+              ) : null}
+            </SectionCard>
           ))}
         </ScrollView>
-        <Animated.View entering={enter(ROWS.length)} style={styles.footer}>
+        <Animated.View entering={enter(SECTIONS.length)} style={styles.footer}>
           <PrimaryButton title="Save item" icon="checkmark" variant="light" onPress={onSave} loading={saving} />
         </Animated.View>
       </KeyboardAvoidingView>
@@ -97,8 +143,17 @@ export default function AddStockScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl },
-  row: { flexDirection: 'row', gap: spacing.md },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.sm, paddingBottom: spacing.md },
+  row: { flexDirection: 'row', gap: spacing.sm },
+  rowSpacing: { marginTop: 2 },
+  formError: { color: colors.dangerStrong, fontSize: 13, marginBottom: spacing.sm, marginLeft: spacing.sm },
   cell: { flex: 1 },
-  footer: { paddingHorizontal: spacing.lg, paddingBottom: spacing.md, paddingTop: spacing.sm },
+  footer: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+    backgroundColor: colors.bg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.inkLine,
+  },
 });

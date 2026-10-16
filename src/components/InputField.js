@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Icon from './Icon';
-import { colors, spacing } from '../theme';
+import { colors, radius, spacing } from '../theme';
 import { fadeIn } from '../theme/motion';
 
 export default function InputField({
@@ -24,6 +24,8 @@ export default function InputField({
   onSubmitEditing,
   error,
   flash = false, // fills the box red for a moment (failed sign-in)
+  center = false, // centers the typed/placeholder text instead of left-aligning it next to the icon
+  editable = true,
   style,
 }) {
   const [hidden, setHidden] = useState(secureTextEntry);
@@ -32,7 +34,7 @@ export default function InputField({
   const ringStyle = useAnimatedStyle(() => ({
     borderColor: error || flash
       ? colors.danger
-      : interpolateColor(focus.value, [0, 1], ['rgba(10,127,176,0)', colors.accentStrong]),
+      : interpolateColor(focus.value, [0, 1], [colors.line, colors.accentStrong]),
   }));
 
   return (
@@ -41,11 +43,12 @@ export default function InputField({
       <Animated.View style={[styles.wrapper, flash && styles.flash, ringStyle]}>
         {icon ? <Icon name={icon} size={18} color={colors.textMuted} style={styles.icon} /> : null}
         <TextInput
-          style={styles.input}
+          style={[styles.input, center && styles.inputCenter]}
           placeholder={placeholder}
           placeholderTextColor={colors.textFaint}
           value={value}
           onChangeText={onChangeText}
+          editable={editable}
           secureTextEntry={hidden}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
@@ -79,33 +82,35 @@ export default function InputField({
 }
 
 const styles = StyleSheet.create({
-  container: { marginBottom: spacing.md },
+  container: { marginBottom: spacing.sm },
   label: {
     color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-    marginBottom: spacing.sm,
-    marginLeft: spacing.lg,
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 4,
+    marginLeft: spacing.xs,
   },
   wrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.elevated2,
-    borderWidth: 1.5,
-    borderRadius: 999,
-    paddingHorizontal: 20,
-    height: 56,
+    backgroundColor: colors.elevated,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md,
+    height: 44,
+    overflow: 'hidden',
   },
   flash: { backgroundColor: `${colors.danger}55` },
   icon: { marginRight: spacing.sm },
   input: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
     color: colors.text,
     paddingVertical: 0,
     ...Platform.select({ web: { outlineStyle: 'none' }, default: {} }),
   },
+  inputCenter: { textAlign: 'center' },
   eye: { padding: spacing.xs },
-  error: { color: colors.danger, fontSize: 12, marginTop: 6, marginLeft: spacing.lg },
+  error: { color: colors.dangerStrong, fontSize: 11, marginTop: 4, marginLeft: spacing.sm },
 });

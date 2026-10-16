@@ -11,10 +11,10 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 import Screen from '../components/Screen';
-import ScreenHeader from '../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import Gauge from '../components/Gauge';
 import SegmentedControl from '../components/SegmentedControl';
-import { colors, spacing, tones } from '../theme';
+import { colors, shadows, spacing, tones } from '../theme';
 import { enter } from '../theme/motion';
 import { branches, metricDetail, metrics, periods } from '../data/dashboardData';
 
@@ -43,9 +43,7 @@ export default function MetricDetailScreen({ navigation, route }) {
   const goTo = (i) => pager.current?.scrollTo({ x: i * item, animated: true });
 
   return (
-    <Screen>
-      <ScreenHeader title={metric.title} onBack={() => navigation.goBack()} />
-
+    <Screen header={<ScreenHeader title={metric.title} onBack={() => navigation.goBack()} />}>
       <View style={styles.body} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {width ? (
           <>
@@ -129,11 +127,18 @@ function Dot({ index, x, item }) {
 }
 
 const styles = StyleSheet.create({
-  body: { flex: 1, paddingTop: spacing.lg },
+  body: { flex: 1, paddingTop: HEADER_HEIGHT + spacing.lg },
   pagerTitle: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4, textAlign: 'center' },
-  dots: { flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: spacing.md },
+  dots: { flexDirection: 'row', justifyContent: 'center', gap: spacing.sm, marginTop: spacing.md },
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accentStrong },
   gauge: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  gaugeCard: { padding: spacing.md, borderRadius: 32, backgroundColor: colors.card },
+  gaugeCard: {
+    padding: spacing.md,
+    borderRadius: 32,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
+    ...shadows.sm,
+  },
   periods: { width: 260, alignSelf: 'center', marginBottom: spacing.xxl },
 });

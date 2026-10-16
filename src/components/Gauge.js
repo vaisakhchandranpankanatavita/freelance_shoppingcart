@@ -37,7 +37,7 @@ function arcPath(c, r, deg) {
   return `M${c},${c - r} A${r},${r} 0 ${deg > 180 ? 1 : 0} 1 ${end.x},${end.y}`;
 }
 
-// Radial dial (drawn for a charcoal card): the tick ring lights up clockwise, the thin arc sweeps with it,
+// Radial dial (drawn for a light card): the tick ring lights up clockwise, the thin arc sweeps with it,
 // a glowing knob rides the tip and the centre number counts up — all from one tween.
 export default function Gauge({ value, max, unit, size = 280, from = colors.danger, to = colors.danger }) {
   const c = size / 2;
@@ -80,8 +80,8 @@ export default function Gauge({ value, max, unit, size = 280, from = colors.dang
       accessibilityLabel={`${Math.round(value)} ${unit} of ${max}`}
     >
       <Svg width={size} height={size} style={StyleSheet.absoluteFill}>
-        <Circle cx={c} cy={c} r={rRing} stroke="#303037" strokeWidth={22} fill="none" />
-        <Circle cx={c} cy={c} r={rRing - 11} stroke="#3A3A43" strokeWidth={1} fill="none" />
+        <Circle cx={c} cy={c} r={rRing} stroke={colors.cardAlt} strokeWidth={22} fill="none" />
+        <Circle cx={c} cy={c} r={rRing - 11} stroke={colors.inkLine} strokeWidth={1} fill="none" />
         <Path d={allTicks} stroke={colors.inkMuted} strokeOpacity={0.3} strokeWidth={1.4} />
         <Path d={ticksPath(c, rTickIn, rTickOut, 0, deg)} stroke={to} strokeWidth={1.6} />
         <Path d={arcPath(c, rArc, deg)} stroke={from} strokeOpacity={0.5} strokeWidth={1.5} fill="none" strokeLinecap="round" />

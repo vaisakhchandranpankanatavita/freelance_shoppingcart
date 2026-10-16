@@ -1,61 +1,163 @@
-// Design tokens — light page, charcoal cards: a cream → grey-cyan gradient canvas with white
-// rows/inputs, graphite "feature" cards (KPIs, chart, gauge), cyan for
-// interactive/active state and a green → cyan gradient for data.
-// One soft mint-cyan canvas everywhere (phone and web) so white rows/inputs lift off it
-// and it sits between the green → cyan accents and the charcoal cards.
+// Design tokens — "In-App Purchases" palette: a warm hide-beige → soft mint gradient canvas
+// with white rows/inputs, white/near-white "feature" cards (KPIs, chart, gauge), a deep sage
+// ("forest") for interactive/active state and a mint → forest gradient for data.
+// Source swatches (kept verbatim where they work as surfaces/backgrounds):
+//   Lynx White #F9F7F6 · Toxic Essence #CEE9BD · Light Weathered Hide #E0D5CF ·
+//   Arbor Vitae #BCC5AD · Chicago #5C5E58 · Black Metal #050504.
+// Arbor Vitae/Toxic Essence are too pale to read as text or icons on a white card, so `accent`
+// and `accentStrong` are a darkened, same-hue "forest" derived from Arbor Vitae — used only
+// where the palette itself needs a legible accent (icons, links, active states); the pale
+// swatches stay as fills/washes, exactly as they read in the source palette.
+// Primitives referenced from more than one place below, so an edit to the hex only ever
+// happens in one spot — `success`/`danger`/`warning` text variants and `info` are aliases of
+// these, not independent literals that could quietly drift apart from them.
+const GREEN = '#1ED58A';
+const GREEN_STRONG = '#0A7A4C'; // darkened for text/icons — ~1.9:1 on white as the bright base, 5.4:1 darkened
+const DANGER_STRONG = '#A82A22'; // darkened `danger` for text/icons — 6.9:1 on white vs. 3.6:1 for the bright base
+const WARNING_STRONG = '#9C4D00'; // darkened `warning` for text/icons — 6.0:1 on white vs. 1.8:1 for the bright base
+// Primary-action fill ("Save item", "Create order", "Save bill", etc. — every PrimaryButton
+// `variant="light"`): a neutral warm grey, matching the bottom bar/dock surface, not the
+// forest/sage `accent` the rest of the UI (icons, active states, chips) uses. CTA_STRONG is
+// its pressed shade.
+const CTA = '#8A807F';
+const CTA_STRONG = '#6B6362';
+
 export const colors = {
-  // Light canvas & surfaces
-  bg: '#EEEEEA', // midpoint of bgGradient: solid fallback behind the gradient / scene flashes
-  bgGradient: ['#FFF6E9', '#DCE6EB'], // cream → grey-cyan, drawn at 135° by PatternBackground
+  // Light canvas — a single warm-linen hue, just barely deepening from top to bottom (no hue
+  // shift into a cooler tone) so long sessions of stock/sales work read as calm and settled
+  // rather than a visible decorative gradient.
+  bg: '#F3EFE9', // midpoint of bgGradient: solid fallback behind the gradient / scene flashes
+  bgGradient: ['#F8F4EE', '#EEE8DF'], // warm linen, drawn top → bottom
   elevated: '#FFFFFF',
-  elevated2: '#E6E8E4',
-  elevated3: '#D6DBDB',
-  line: '#DDE2E1',
+  elevated2: '#F9F7F6', // Lynx White
+  elevated3: '#DDE3D3', // lightened Arbor Vitae
+  line: '#E0D5CF', // Light Weathered Hide
 
   // Text on the light canvas
-  text: '#1D1D23',
-  textMuted: '#56646A',
-  textFaint: '#7A878C',
+  text: '#050504', // Black Metal
+  textMuted: '#5C5E58', // Chicago
+  textFaint: '#8B8D84', // lightened Chicago
 
-  // Charcoal cards ("ink" is text on a card)
-  card: '#2A2A30',
-  cardAlt: '#36363E',
-  cardFade: '#232328',
-  ink: '#FFFFFF',
-  inkMuted: '#9A9AA5',
-  inkLine: '#3A3A42',
+  // Light cards ("ink" is text on a card)
+  card: '#FFFFFF',
+  cardAlt: '#F9F7F6', // Lynx White
+  cardFade: '#F7F5F1',
+  ink: '#050504', // Black Metal
+  inkMuted: '#5C5E58', // Chicago
+  inkLine: '#E6E2D9',
 
-  // Chips / badges that sit on a card
-  chip: '#1E1E23',
+  // Chips / badges / avatars nested inside an already-white row
+  chip: '#E3E7DA', // lightened Arbor Vitae
 
   // True white paper — only where contrast must be dark-on-white (QR codes)
   paper: '#FFFFFF',
   paperInk: '#0A0A0A',
 
   // Accents
-  accent: '#1EB7EB',
-  onAccent: '#08202C', // text/icons on a cyan fill (white would only reach ~2.3:1)
-  accentStrong: '#0A7FB0', // cyan dark enough for text/outlines on the light canvas
-  green: '#1ED58A',
-  greenStrong: '#0B8A57', // green for text on the light canvas
+  accent: '#59664C', // Arbor Vitae, darkened to a legible "forest" sage
+  onAccent: '#F9F7F6', // Lynx White text/icons on the forest fill
+  accentStrong: '#3D4634', // deeper forest, for text/outlines needing extra contrast
+  // (There is no separate `info` token: "info" states use `accent` directly — a distinct
+  // hex for the same brand color would just be a second name that can silently drift.)
 
-  // Status
+  // Primary-action fill — see CTA/CTA_STRONG above. `onCta` is the text/icon color on it.
+  // Requested as pure white for "Create order" and the other `variant="light"` PrimaryButtons;
+  // note this clears only ~3.5:1 against the CTA mid-grey fill, under the 4.5:1 AA floor the
+  // previous dark `onCta` was chosen to meet.
+  cta: CTA,
+  ctaStrong: CTA_STRONG,
+  onCta: '#FFFFFF',
+
+  // `green` is the one brand-green hex, used both as a decorative data-viz swatch (charts,
+  // gradients) and — aliased as `success` — as the "good" status color; both names point at
+  // the same constant above so they can't desync. Fills (chart lines, toast icon backgrounds,
+  // status dots/pills) can use the bright base color directly; on the light canvas it's too
+  // pale to pass as TEXT or an icon glyph (~1.9:1 on white, well under the 4.5:1 AA floor), so
+  // `greenStrong`/`successStrong` are the darkened variant for that use — same rule
+  // `accentStrong` follows for `accent`.
+  green: GREEN,
+  greenStrong: GREEN_STRONG,
+
+  // Status. `danger`/`warning` are bright fills only — ~3.6:1 and ~1.8:1 on white, both under
+  // the 4.5:1 AA floor for text — so `dangerStrong`/`warningStrong` are the text/icon-safe
+  // darkened variants (same pattern as `greenStrong`, all ≥4.5:1 on white). `success` is
+  // `green` under a semantic name; `info` isn't a separate token, see `accent` above.
   danger: '#F2484E',
-  success: '#1ED58A',
+  dangerStrong: DANGER_STRONG,
+  success: GREEN,
+  successStrong: GREEN_STRONG,
   warning: '#FFB020',
-  info: '#1EB7EB',
+  warningStrong: WARNING_STRONG,
 
-  gradient: ['#1ED58A', '#1FC7B6', '#1EB7EB'],
+  gradient: [GREEN, '#9BBF7A', '#59664C'],
+
+  // Shared surface for the floating navigation and compact actions — a neutral warm grey
+  // (not the forest `accent` family) so the bottom dock reads as its own chrome rather than a
+  // darker shade of the same green used for active states elsewhere.
+  bar: '#8A807F',
+  barSoft: '#A89E9D',
+  // Inactive tab-bar glyph: `bar` lightened from near-black charcoal to a mid-grey means plain
+  // white no longer clears 4.5:1 against it (~2:1) — this dark neutral does (~4.7:1).
+  onBar: '#2A2724',
 
   // Web presentation stage behind the phone frame
   stage: '#2A2A30',
+
+  // Shared shadow color — every `shadowColor` in the app should point here instead of
+  // re-typing '#000', so a future theme change (e.g. a tinted shadow) is a one-line edit.
+  shadow: '#000000',
 };
 
-// Data tones: [start, end] of a waveform / gauge gradient, keyed by metric tone.
+// Categorical data-viz swatches — for charts/legends that need more than the two or three
+// semantic status colors (e.g. the dashboard's per-category health bars). `sage`/`mint`/`coral`
+// reuse the semantic tokens above so a legend swatch and a status color never silently diverge;
+// `mustard`/`violet`/`slate` exist only here.
+export const chartPalette = {
+  sage: colors.accent,
+  mint: colors.green,
+  mustard: '#F2B33D',
+  coral: colors.danger,
+  violet: '#8B7CF6',
+  slate: '#9A9AA5',
+};
+
+// Tones for the login/signup shelf illustration (screens/auth/ShelfScene.js) only — kept out
+// of `colors` because they're scene-specific (produce crates, wood, milk glass), not reusable
+// UI tokens. Reuses the shared red/green/mustard above so the illustration and the in-app
+// data-viz can't drift apart; `milk`/`plank`/`edge`/`shade` are illustration-only.
+export const illustration = {
+  tomato: colors.danger,
+  mustard: chartPalette.mustard,
+  leaf: colors.green,
+  milk: '#F4F6F8',
+  plank: '#3C3C45',
+  edge: '#4A4A54',
+  shade: '#1E1E23',
+};
+
+// The soft glow behind the top of every screen (components/PatternBackground.js), one tint per
+// tab so each section is recognisable at a glance while sharing the exact same treatment. Each
+// is a three-stop pastel gradient — every stop stays light so the canvas never darkens behind
+// cards or text, only the hue changes from section to section.
+export const sectionTints = {
+  Dashboard: ['#BFF0D6', '#DDEFC9', '#C9DDB8'], // pale mint → sage
+  Stock: ['#BDEFE4', '#D6F2EC', '#B7DDD8'], // pale aqua
+  Purchase: ['#FBE3B0', '#FCEFD2', '#F3D9A8'], // pale wheat
+  Sale: ['#FBD3C6', '#FDE6DD', '#F4C8BA'], // pale peach
+  More: ['#DCD6FA', '#ECE8FD', '#D2CCF2'], // pale lavender
+};
+
+// Data tones: [start, end] of a waveform / gauge gradient, keyed by metric tone. `violet`,
+// `mustard` and `slate` are darkened companions of the matching `chartPalette` swatch (same hue,
+// a deeper shade for the gradient's far end) so a metric card's waveform and the category
+// donut/bars read as the same palette instead of two unrelated colour sets.
 export const tones = {
-  green: ['#1ED58A', '#1FC7B6'],
-  cyan: ['#1FC7B6', '#1EB7EB'],
+  green: [GREEN, '#9BBF7A'],
+  cyan: ['#9BBF7A', '#59664C'],
   red: ['#F2484E', '#FF7A59'],
+  violet: ['#8B7CF6', '#5C4ACB'],
+  mustard: ['#F2B33D', '#C4891E'],
+  slate: ['#9A9AA5', '#6E6E78'],
 };
 
 export const spacing = {
@@ -70,27 +172,69 @@ export const spacing = {
 export const radius = {
   sm: 8,
   md: 12,
-  lg: 18,
-  xl: 24,
+  lg: 16,
+  xl: 20,
   pill: 999,
 };
 
-// Bricolage Grotesque carries headlines and big numbers (loaded in App.js);
-// running UI text stays on the platform's system font.
-export const fonts = {
-  display: 'BricolageGrotesque_800ExtraBold',
-  displayBold: 'BricolageGrotesque_700Bold',
+// Centralized elevation presets — every card/button/sheet shadow in the app should spread one
+// of these instead of re-typing its own shadowOpacity/shadowRadius/shadowOffset/elevation, so a
+// future "make everything cast a bit more shadow" edit is three lines, not forty. All three key
+// off the shared `colors.shadow` token (never a literal '#000'); `sm` suits a resting list
+// row/tile, `md` a standalone card or floating button, `lg` a sheet/dialog/toast that should
+// read as sitting well above the canvas.
+export const shadows = {
+  sm: {
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
+  },
+  md: {
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 4,
+  },
+  lg: {
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 8,
+  },
 };
 
+// Outfit (geometric sans) carries headlines and section headers; Inter — also loaded in
+// App.js — is the app-wide running-text face (body copy, labels, buttons, inputs) and is also
+// the default for any <Text>/<TextInput> that sets no fontFamily of its own (see App.js), so
+// the whole app reads as one typeface pairing instead of falling back to the OS system font.
+// Inter's tall x-height keeps dense data, numbers, and system labels legible at small sizes.
+export const fonts = {
+  display: 'Outfit_700Bold',
+  displayBold: 'Outfit_700Bold',
+  displaySemiBold: 'Outfit_600SemiBold',
+  displayMedium: 'Outfit_500Medium',
+  body: 'Inter_400Regular',
+  bodyMedium: 'Inter_500Medium',
+  bodySemiBold: 'Inter_600SemiBold',
+  bodyBold: 'Inter_700Bold',
+};
+
+// Mobile hierarchy: main headers 24-28 (Outfit Bold/SemiBold), section headers 18-20
+// (Outfit Medium), body/inputs 15-16 (Inter Regular), captions/micro-copy/graph labels 12-13
+// (Inter Medium/Regular).
 export const typography = {
   display: { fontSize: 40, lineHeight: 44, fontFamily: fonts.display, letterSpacing: -1.2 },
   title: { fontSize: 28, lineHeight: 34, fontFamily: fonts.display, letterSpacing: -0.6 },
-  h2: { fontSize: 22, lineHeight: 28, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
-  h3: { fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
-  body: { fontSize: 15 },
-  small: { fontSize: 12 },
-  label: { fontSize: 12, fontWeight: '600', letterSpacing: 0.4 },
-  button: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
+  h2: { fontSize: 22, lineHeight: 28, fontFamily: fonts.displaySemiBold, letterSpacing: -0.4 },
+  h3: { fontSize: 18, lineHeight: 24, fontFamily: fonts.displayMedium, letterSpacing: -0.2 },
+  body: { fontSize: 15, lineHeight: 22, fontFamily: fonts.body },
+  small: { fontSize: 13, lineHeight: 17, fontFamily: fonts.body },
+  label: { fontSize: 12, fontFamily: fonts.bodyMedium, letterSpacing: 0.4 },
+  button: { fontSize: 16, fontFamily: fonts.bodyBold, letterSpacing: -0.2 },
 };
 
-export default { colors, tones, spacing, radius, typography, fonts };
+export default { colors, chartPalette, illustration, sectionTints, tones, spacing, radius, shadows, typography, fonts };

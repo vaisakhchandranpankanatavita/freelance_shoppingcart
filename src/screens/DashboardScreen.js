@@ -1,34 +1,24 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Platform, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { Platform, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../components/Icon';
 import Screen from '../components/Screen';
+import { HEADER_HEIGHT_LARGE_NO_BACK } from '../components/ScreenHeader';
 import PressableScale from '../components/PressableScale';
 import MetricCard from '../components/MetricCard';
-import LineChart from '../components/LineChart';
 import EmptyState from '../components/EmptyState';
-import ActionPicker from '../components/ActionPicker';
 import StackedList from '../components/StackedList';
+import Waveform from '../components/Waveform';
+import { GlassCard } from '../components/Glass';
 import { DataTable, DonutChart, HealthBar } from '../components/DashboardWidgets';
-import { GlassEdge } from '../components/Glass';
-import { colors, radius, spacing, fonts } from '../theme';
+import { useTabBarClearance } from '../components/TabBar';
+import { colors, radius, spacing, fonts, tones } from '../theme';
 import { enter } from '../theme/motion';
 import { getDashboard } from '../modules/dashboard/services';
 
-const GAP = 12;
-
-// `initial: false` keeps each stack's list screen underneath so Back behaves naturally.
-const SHORTCUTS = [
-  { key: 'sale', label: 'New bill', icon: 'receipt-outline', tab: 'Sale', screen: 'NewSale' },
-  { key: 'stock', label: 'Add stock', icon: 'cube-outline', tab: 'Stock', screen: 'AddStock' },
-  { key: 'po', label: 'New PO', icon: 'cart-outline', tab: 'Purchase', screen: 'AddPurchase' },
-  { key: 'sales', label: 'Sales', icon: 'pricetag-outline', tab: 'Sale' },
-  { key: 'branches', label: 'Branches', icon: 'business-outline', tab: 'More', screen: 'EntityList', params: { entity: 'branch' } },
-  { key: 'categories', label: 'Categories', icon: 'albums-outline', tab: 'More', screen: 'EntityList', params: { entity: 'category' } },
-  { key: 'suppliers', label: 'Suppliers', icon: 'people-outline', tab: 'More', screen: 'EntityList', params: { entity: 'supplier' } },
-  { key: 'shop', label: 'Store', icon: 'storefront-outline', tab: 'More', screen: 'EntityForm', params: { entity: 'shop' } },
-];
+// Gap between snapped carousel cards — pulled from the spacing scale, not a one-off number.
+const GAP = spacing.sm;
 
 const rupees = (n) => `₹${Math.round(n).toLocaleString('en-IN')}`;
 
@@ -52,7 +42,12 @@ export default function DashboardScreen({ navigation }) {
     await load();
     setRefreshing(false);
   };
-  const metrics = data?.metrics ?? [];
+  const allMetrics = data?.metrics ?? [];
+  // Stock value carries the most weight of any figure here, so it leads the screen as a hero
+  // rather than sitting shoulder-to-shoulder with five equal-sized cards in the carousel.
+  const hero = allMetrics.find((m) => m.key === 'value') ?? null;
+  const metrics = allMetrics.filter((m) => m.key !== 'value');
+  const tabClearance = useTabBarClearance();
 
   // Two cards fit exactly inside the screen margins, snapping card by card.
   const cardW = width ? (width - spacing.lg * 2 - GAP) / 2 : 0;
@@ -101,25 +96,10 @@ export default function DashboardScreen({ navigation }) {
 
   return (
     <Screen>
-      {/* Top bar sits outside the scroll view so it stays pinned while the content moves. */}
-      <Animated.View entering={enter(0)} style={styles.header}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.title} accessibilityRole="header">
-            Store Dashboard
-          </Text>
-        </View>
-        <Pressable
-          onPress={() => navigation.navigate('More')}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Menu"
-        >
-          <Icon name="reorder-two-outline" size={28} color={colors.text} />
-        </Pressable>
-      </Animated.View>
-
+      {/* Title/menu icon now live in AppHeader.js, rendered once at the tab-navigator level so
+          it stays fixed across tab switches instead of remounting with this screen. */}
       <Animated.ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabClearance + spacing.lg }]}
         showsVerticalScrollIndicator={false}
         onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.accentStrong} />}
@@ -133,6 +113,24 @@ export default function DashboardScreen({ navigation }) {
             actionLabel="Try again"
             onAction={load}
           />
+        ) : null}
+
+        {hero ? (
+          <Animated.View entering={enter(1)} style={styles.heroWrap}>
+            <PressableScale onPress={() => navigation.navigate(...hero.to)} accessibilityLabel={`${hero.title}: ${hero.value}. Open stock`}>
+              <GlassCard style={styles.hero}>
+                <Text style={[styles.heroLabel, styles.onCard]}>{hero.title}</Text>
+                <View style={styles.heroFigure}>
+                  <Text style={styles.heroValue}>{hero.value}</Text>
+                  <View style={[styles.heroBadge, { borderColor: tones[hero.tone][1] }]}>
+                    <Icon name={hero.icon} size={17} color={tones[hero.tone][1]} />
+                  </View>
+                </View>
+                <Text style={styles.heroSubtitle}>{hero.subtitle}</Text>
+                <Waveform from={tones[hero.tone][0]} to={tones[hero.tone][1]} seed={1} height={36} style={styles.heroWave} />
+              </GlassCard>
+            </PressableScale>
+          </Animated.View>
         ) : null}
 
         {cardW && metrics.length ? (
@@ -164,61 +162,9 @@ export default function DashboardScreen({ navigation }) {
           <View style={styles.carouselPlaceholder} />
         ) : null}
 
-        {data?.chart ? (
-          <Animated.View entering={enter(3)} style={styles.panel}>
-            <Text style={[styles.sectionTitle, styles.onCard]}>Stock value by category</Text>
-            <View style={styles.chart}>
-              <LineChart
-                series={data.chart.series}
-                max={data.chart.max}
-                ticks={data.chart.ticks}
-                format={(v) => `₹${v.toFixed(1)}K`}
-                initialIndex={0}
-                height={140}
-              />
-            </View>
-          </Animated.View>
-        ) : null}
-
-        {data?.insights ? (
-          <>
-            <Animated.View entering={enter(4)} style={styles.panel}>
-              <Text style={[styles.sectionTitle, styles.onCard]}>Stock health</Text>
-              <HealthBar
-                parts={[
-                  { label: 'In stock', value: data.insights.health.ok, color: colors.green },
-                  { label: 'Low', value: data.insights.health.low, color: colors.warning },
-                  { label: 'Out', value: data.insights.health.out, color: colors.danger },
-                ]}
-              />
-            </Animated.View>
-            {data.insights.share.length > 1 ? (
-              <Animated.View entering={enter(5)} style={styles.panel}>
-                <Text style={[styles.sectionTitle, styles.onCard]}>Where your stock value sits</Text>
-                <DonutChart
-                  data={data.insights.share}
-                  total={data.insights.totalValue}
-                  centreLabel="total value"
-                  format={(v) => (v >= 100000 ? `₹${(v / 100000).toFixed(1)}L` : `₹${(v / 1000).toFixed(1)}K`)}
-                />
-              </Animated.View>
-            ) : null}
-          </>
-        ) : null}
-
-        <Animated.Text entering={enter(5)} style={[styles.sectionTitle, styles.section]}>
-          Quick actions
-        </Animated.Text>
-        <ActionPicker
-          actions={SHORTCUTS}
-          onOpen={(s) =>
-            navigation.navigate(s.tab, s.screen ? { screen: s.screen, params: s.params, initial: false } : undefined)
-          }
-        />
-
         {data?.lowStock.length ? (
           <>
-            <Animated.Text entering={enter(7)} style={[styles.sectionTitle, styles.section]}>
+            <Animated.Text entering={enter(3)} style={[styles.sectionTitle, styles.section]}>
               Needs restocking
             </Animated.Text>
             <StackedList
@@ -232,13 +178,55 @@ export default function DashboardScreen({ navigation }) {
                   </View>
                   <View style={{ flex: 1, marginLeft: spacing.md }}>
                     <Text style={styles.productName} numberOfLines={1}>{d.name}</Text>
-                    <Text style={styles.productMeta}>{d.category}</Text>
+                    <Text style={styles.productMeta} numberOfLines={1}>{d.category}</Text>
                   </View>
-                  <Text style={styles.lowQty}>{d.qty} {d.unit} left</Text>
+                  <Text style={styles.lowQty} numberOfLines={1}>{d.qty > 0 ? `${d.qty} ${d.unit} left` : 'Out of stock'}</Text>
                 </>
               )}
             />
           </>
+        ) : null}
+
+        {data?.insights ? (
+          <Animated.View entering={enter(4)} style={styles.panelWrap}>
+            <GlassCard style={styles.panel}>
+              <Text style={[styles.sectionTitle, styles.onCard]}>Stock composition</Text>
+              <HealthBar
+                parts={[
+                  { label: 'In stock', value: data.insights.health.ok, color: colors.green },
+                  { label: 'Low', value: data.insights.health.low, color: colors.warning },
+                  { label: 'Out', value: data.insights.health.out, color: colors.danger },
+                ]}
+              />
+              {data.insights.share.length > 1 ? (
+                <>
+                  <View style={styles.panelDivider} />
+                  <Text style={styles.subsectionTitle}>Where the value sits</Text>
+                  <DonutChart
+                    data={data.insights.share}
+                    total={data.insights.totalValue}
+                    centreLabel="total value"
+                    format={(v) => (v >= 100000 ? `₹${(v / 100000).toFixed(1)}L` : `₹${(v / 1000).toFixed(1)}K`)}
+                  />
+                </>
+              ) : null}
+              {data.insights.table.length > 1 ? (
+                <>
+                  <View style={styles.panelDivider} />
+                  <Text style={styles.subsectionTitle}>Category breakdown</Text>
+                  <DataTable
+                    columns={[
+                      { key: 'category', title: 'Category', flex: 1.4, strong: true },
+                      { key: 'items', title: 'Items', flex: 0.6, align: 'right' },
+                      { key: 'units', title: 'Units', flex: 0.7, align: 'right', render: (v) => Math.round(v).toLocaleString('en-IN') },
+                      { key: 'value', title: 'Value', flex: 1.2, align: 'right', bar: true, render: (v) => rupees(v) },
+                    ]}
+                    rows={data.insights.table}
+                  />
+                </>
+              ) : null}
+            </GlassCard>
+          </Animated.View>
         ) : null}
 
         {data?.topStocked.length ? (
@@ -257,66 +245,67 @@ export default function DashboardScreen({ navigation }) {
                   </View>
                   <View style={{ flex: 1, marginLeft: spacing.md }}>
                     <Text style={styles.productName} numberOfLines={1}>{d.name}</Text>
-                    <Text style={styles.productMeta}>{d.qty.toLocaleString('en-IN')} {d.unit} in stock</Text>
+                    <Text style={styles.productMeta} numberOfLines={1}>{d.qty.toLocaleString('en-IN')} {d.unit} in stock</Text>
                   </View>
-                  <Text style={styles.productProfit}>{rupees(d.qty * d.price)}</Text>
+                  <Text style={styles.productProfit} numberOfLines={1}>{rupees(d.qty * d.price)}</Text>
                 </>
               )}
             />
           </>
         ) : null}
-        {data?.insights?.table.length ? (
-          <>
-            <Animated.Text entering={enter(10)} style={[styles.sectionTitle, styles.section]}>
-              Category breakdown
-            </Animated.Text>
-            <DataTable
-              columns={[
-                { key: 'category', title: 'Category', flex: 1.4, strong: true },
-                { key: 'items', title: 'Items', flex: 0.6, align: 'right' },
-                { key: 'units', title: 'Units', flex: 0.7, align: 'right', render: (v) => Math.round(v).toLocaleString('en-IN') },
-                { key: 'value', title: 'Value', flex: 1.2, align: 'right', bar: true, render: (v) => rupees(v) },
-              ]}
-              rows={data.insights.table}
-            />
-          </>
-        ) : null}
       </Animated.ScrollView>
-      <GlassEdge />
     </Screen>
   );
 }
 
+// Two-tier rhythm: SECTION_GAP separates one block from the next (hero, carousel, each list,
+// the composition panel); INNER_GAP separates a block's own title from its content, and one
+// piece of a panel from the next (divider → subsection). Keeping inner gaps tighter than outer
+// ones is what makes the hierarchy — and the page — read as compact rather than just smaller.
+const SECTION_GAP = spacing.lg;
+const INNER_GAP = spacing.md;
+
 const styles = StyleSheet.create({
-  scroll: { paddingBottom: 96 },
-  header: {
-    flexDirection: 'row',
+  // Quick actions moved to a global floating trigger (QuickActionsSheet.js, rendered once
+  // alongside the tab bar) — this screen only needs to clear the floating tab bar itself now
+  // (handled via tabClearance above), not the old extra Quick actions row.
+  scroll: { paddingTop: HEADER_HEIGHT_LARGE_NO_BACK },
+
+  // The one figure the owner checks first — full width, leading the screen, so it reads as
+  // the dashboard's hero rather than one tile among several equal-weight metric cards.
+  heroWrap: { marginHorizontal: spacing.lg, marginTop: spacing.sm },
+  hero: { padding: spacing.lg, borderRadius: radius.lg },
+  heroLabel: { fontSize: 14, fontFamily: fonts.bodySemiBold, color: colors.inkMuted },
+  heroFigure: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: spacing.xs },
+  heroValue: { color: colors.ink, fontSize: 40, fontFamily: fonts.display, letterSpacing: -1.2 },
+  heroBadge: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    justifyContent: 'center',
+    marginBottom: spacing.xs / 2,
   },
-  title: { color: colors.text, fontSize: 22, fontFamily: fonts.display, letterSpacing: -0.5 },
+  heroSubtitle: { color: colors.inkMuted, fontSize: 13, marginTop: spacing.xs },
+  heroWave: { marginTop: spacing.sm, marginHorizontal: spacing.xs / 2 },
 
-  carousel: { marginTop: spacing.md },
-  carouselContent: { paddingHorizontal: spacing.lg, paddingVertical: 4, gap: GAP },
-  carouselPlaceholder: { height: 150, marginTop: spacing.md },
+  carousel: { marginTop: SECTION_GAP },
+  carouselContent: { paddingHorizontal: spacing.lg, paddingVertical: spacing.xs / 2, gap: GAP },
+  carouselPlaceholder: { height: 130, marginTop: SECTION_GAP },
 
-  section: { paddingHorizontal: spacing.lg, marginTop: spacing.lg },
+  section: { paddingHorizontal: spacing.lg, marginTop: SECTION_GAP },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { color: colors.text, fontSize: 18, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
+  sectionTitle: { color: colors.text, fontSize: 16, fontFamily: fonts.displayBold, letterSpacing: -0.4 },
+  subsectionTitle: { fontSize: 13, fontFamily: fonts.bodySemiBold, color: colors.inkMuted },
   onCard: { color: colors.ink },
   toggle: { width: 128 },
-  panel: {
-    marginHorizontal: spacing.lg,
-    marginTop: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.card,
-  },
-  chart: { marginTop: spacing.sm },
+  panelWrap: { marginHorizontal: spacing.lg, marginTop: SECTION_GAP },
+  panel: { padding: INNER_GAP, borderRadius: radius.md },
+  panelDivider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.inkLine, marginVertical: INNER_GAP },
 
   lowIcon: { borderColor: colors.danger },
-  lowQty: { color: colors.danger, fontSize: 13, fontWeight: '700' },
+  lowQty: { color: colors.dangerStrong, fontSize: 13, fontFamily: fonts.bodyBold },
 
   productIcon: {
     width: 34,
@@ -327,7 +316,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  productName: { color: colors.text, fontSize: 14, fontWeight: '600' },
-  productMeta: { color: colors.textMuted, fontSize: 12, marginTop: 2 },
-  productProfit: { color: colors.greenStrong, fontSize: 14, fontWeight: '700' },
+  productName: { color: colors.text, fontSize: 14, fontFamily: fonts.bodySemiBold },
+  productMeta: { color: colors.textMuted, fontSize: 12, marginTop: spacing.xs / 2 },
+  productProfit: { color: colors.greenStrong, fontSize: 14, fontFamily: fonts.bodyBold },
 });

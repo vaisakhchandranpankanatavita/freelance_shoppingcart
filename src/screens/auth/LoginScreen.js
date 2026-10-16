@@ -3,9 +3,10 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   Pressable,
+  Keyboard,
   KeyboardAvoidingView,
+  ScrollView,
   Platform,
 } from 'react-native';
 import Animated, {
@@ -14,8 +15,8 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../../components/Icon';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PatternBackground from '../../components/PatternBackground';
 import InputField from '../../components/InputField';
 import { useFeedback } from '../../components/Feedback';
@@ -24,7 +25,7 @@ import AuthHero from './AuthHero';
 import PinCells from './PinCells';
 import Receipt, { Barcode, Perforation, ReceiptHeader, mono } from '../../components/Receipt';
 import { colors, spacing } from '../../theme';
-import { fadeIn, fadeOut, layout } from '../../theme/motion';
+import { fadeIn, fadeOut } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
 
 const MODES = [
@@ -44,6 +45,15 @@ export default function LoginScreen({ navigation }) {
   const failTimer = useRef(null);
 
   useEffect(() => () => clearTimeout(failTimer.current), []);
+
+  // The hero + receipt are taller than the screen once the keyboard is up, so scroll the
+  // receipt (and its Clear button) into view when the keyboard opens.
+  const scroller = useRef(null);
+  useEffect(() => {
+    const evt = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const sub = Keyboard.addListener(evt, () => setTimeout(() => scroller.current?.scrollToEnd({ animated: true }), 50));
+    return () => sub.remove();
+  }, []);
 
   // Glitch: a burst of fast, uneven jumps (with a little skew) while the boxes flash red.
   const glitch = () => {
@@ -98,9 +108,14 @@ export default function LoginScreen({ navigation }) {
       <PatternBackground />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scroller}
+          contentContainerStyle={styles.body}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <AuthHero
             title="Sign in"
             subtitle="Open your counter for today's shift."
@@ -123,7 +138,7 @@ export default function LoginScreen({ navigation }) {
               style={styles.segment}
             />
 
-            <Animated.View layout={layout} style={shakeStyle}>
+            <Animated.View style={[styles.fullWidth, shakeStyle]}>
               {loginMode === 'loginId' ? (
                 <PinCells value={identifier} onChangeText={onPinChange} placeholder="4-digit Login ID" error={failed} />
               ) : (
@@ -135,6 +150,7 @@ export default function LoginScreen({ navigation }) {
                     value={identifier}
                     onChangeText={setIdentifier}
                     flash={failed}
+                    center
                   />
                   <InputField
                     label="Password"
@@ -143,6 +159,7 @@ export default function LoginScreen({ navigation }) {
                     value={password}
                     onChangeText={setPassword}
                     flash={failed}
+                    center
                     secureTextEntry
                     returnKeyType="go"
                     onSubmitEditing={onPasswordSubmit}
@@ -151,7 +168,7 @@ export default function LoginScreen({ navigation }) {
               )}
             </Animated.View>
 
-            <Animated.View layout={layout}>
+            <View>
               <Pressable
                 style={styles.rememberRow}
                 onPress={() => setRemember((v) => !v)}
@@ -159,7 +176,7 @@ export default function LoginScreen({ navigation }) {
                 accessibilityState={{ checked: remember }}
               >
                 <View style={[styles.checkbox, remember && styles.checkboxOn]}>
-                  {remember ? <Icon name="checkmark" size={14} color={colors.ink} /> : null}
+                  {remember ? <Icon name="checkmark" size={14} color={colors.onAccent} /> : null}
                 </View>
                 <Text style={styles.rememberText}>Keep me signed in on this counter</Text>
               </Pressable>
@@ -182,7 +199,7 @@ export default function LoginScreen({ navigation }) {
                   ? 'Demo IDs: 1001 admin, 2002 staff'
                   : 'Demo: Admin / admin123, BillStaff / staff123'}
               </Text>
-            </Animated.View>
+            </View>
           </Receipt>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -192,8 +209,9 @@ export default function LoginScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.bg },
-  scroll: { flexGrow: 1, paddingBottom: spacing.xxl },
+  body: { flexGrow: 1, justifyContent: 'center', paddingBottom: spacing.lg },
   receipt: { marginTop: -48 },
+  fullWidth: { width: '100%' },
   segment: { marginBottom: spacing.lg },
   clear: {
     alignSelf: 'center',
@@ -209,6 +227,7 @@ const styles = StyleSheet.create({
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: spacing.lg,
     marginBottom: spacing.lg,
   },
@@ -222,7 +241,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxOn: { backgroundColor: colors.card, borderColor: colors.card },
+  checkboxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   rememberText: { color: colors.textMuted, fontSize: 14 },
   demoHint: {
     marginTop: spacing.sm,

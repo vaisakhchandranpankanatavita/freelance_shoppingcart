@@ -74,18 +74,48 @@ export const productToStockRows = (product) => {
 
 export const mapStockItems = (res) => toList(res).flatMap(productToStockRows);
 
-// Catalog for the sale screen: { id, name, price }
+// Catalog for the sale screen: { id, name, price, qty }. `qty` is kept (not just used to
+// filter) so a zero-stock item still shows up for billing instead of silently disappearing —
+// the row just gets an "Out of stock" label (see NewSaleScreen.js).
 export const mapCatalog = (res) =>
-  mapStockItems(res).map(({ id, name, price }) => ({ id, name, price }));
+  mapStockItems(res).map(({ id, name, price, qty }) => ({ id, name, price, qty }));
 
-// Stock form -> createProduct payload. FIELD NAMES NEED BACKEND CONFIRMATION
-// (the API probably expects category_id / unit_id / branch_id rather than names).
-export const toProductPayload = ({ name, category, qty, unit, price, lowAt }) => ({
-  name,
-  category_name: category,
-  selling_price: num(price),
-  price: num(price),
-  quantity: num(qty),
-  unit,
-  low_stock_alert: num(lowAt, 5),
+// GET /stockLedger — one row per stock movement: { id, date, productName, branchName, type, qty, reference }.
+export const toLedgerRows = (res) =>
+  toList(res).map((r, i) => ({
+    id: String(r.id ?? i),
+    date: String(pick(r, ['date', 'created_at']) ?? '').slice(0, 10),
+    productName: String(pick(r, ['product_name', 'item_name']) ?? r.product?.name ?? r.product?.item_name ?? ''),
+    branchName: String(pick(r, ['branch_name']) ?? r.branch?.name ?? ''),
+    type: String(pick(r, ['type', 'movement_type']) ?? '').toLowerCase() === 'out' ? 'out' : 'in',
+    qty: num(pick(r, ['qty', 'quantity'])),
+    reference: String(pick(r, ['reference', 'reference_no', 'remarks']) ?? ''),
+  }));
+
+// GET /categories, reshaped for the Add stock item form's picker — the real /products/store
+// call needs a numeric category_id (confirmed by a live GET /products response), not a name.
+export const toCategoryOptions = (res) =>
+  toList(res).map((c) => ({
+    value: String(c.id),
+    label: String(pick(c, ['category_name', 'name']) ?? ''),
+  }));
+
+// Stock form -> POST /products/store payload. Field names confirmed from a live GET /products
+// response plus two live 422s: variant_name/sku/minimum_stock/is_weightable are top-level
+// fields (not nested under a `variants` array), and each must itself be an array — one entry
+// per variant row, parallel across the four fields. This quick-add form only ever submits one.
+// `qty`/`price` have no home on this endpoint (the sample response carries neither on the
+// product nor the variant) — services.js sends them on afterwards via the confirmed
+// Variant Stock Update endpoint instead.
+export const toProductPayload = ({ name, categoryId, lowAt }) => ({
+  item_name: name,
+  category_id: categoryId,
+  with_tax: 'N',
+  tax: '0',
+  with_loyalty: 'N',
+  status: 'Y',
+  variant_name: [name],
+  sku: [String(Date.now())],
+  minimum_stock: [num(lowAt, 5)],
+  is_weightable: ['N'],
 });

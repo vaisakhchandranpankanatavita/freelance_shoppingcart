@@ -6,7 +6,7 @@ import PaymentScreen from './PaymentScreen';
 import CheckoutScreen from './CheckoutScreen';
 import BillPreviewScreen from './BillPreviewScreen';
 import SaleDetailScreen from './SaleDetailScreen';
-import { stackScreenOptions, sharedElementOptions } from '../../navigation/stackOptions';
+import { stackScreenOptions, sharedElementOptions, bottomSheetScreenOptions } from '../../navigation/stackOptions';
 
 const Stack = createNativeStackNavigator();
 
@@ -14,7 +14,7 @@ export default function SaleNavigator() {
   return (
     <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="SaleList" component={SaleListScreen} />
-      <Stack.Screen name="NewSale" component={NewSaleScreen} />
+      <Stack.Screen name="NewSale" component={NewSaleScreen} options={bottomSheetScreenOptions} />
       <Stack.Screen name="Payment" component={PaymentScreen} />
       <Stack.Screen name="Checkout" component={CheckoutScreen} />
       <Stack.Screen

@@ -3,17 +3,25 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from './Icon';
 import PressableScale from './PressableScale';
-import { colors, fonts, radius, spacing } from '../theme';
+import { colors, fonts, radius, shadows, spacing } from '../theme';
 import { enter } from '../theme/motion';
 
 // A blank or failed list: say what happened and offer the next step.
-// tone 'error' tints the icon red.
+// tone 'error' tints the icon red. tone 'locked' is for a feature whose backend API isn't
+// live yet — reads as "unlocks soon" rather than a broken screen (amber, no error framing).
 export default function EmptyState({ icon = 'file-tray-outline', title, message, actionLabel, onAction, tone, index = 0 }) {
   const error = tone === 'error';
+  const locked = tone === 'locked';
   return (
     <Animated.View entering={enter(index)} style={styles.wrap}>
-      <View style={[styles.ring, error && styles.ringError]}>
-        <Icon name={icon} size={28} color={error ? colors.danger : colors.textMuted} />
+      {locked ? (
+        <View style={styles.lockedBadge}>
+          <Icon name="sparkles" size={11} color={colors.warningStrong} />
+          <Text style={styles.lockedBadgeText}>Coming soon</Text>
+        </View>
+      ) : null}
+      <View style={[styles.ring, error && styles.ringError, locked && styles.ringLocked]}>
+        <Icon name={icon} size={28} color={error ? colors.danger : locked ? colors.warningStrong : colors.textMuted} />
       </View>
       <Text style={styles.title} accessibilityRole="header">
         {title}
@@ -39,8 +47,21 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
   },
   ringError: { backgroundColor: `${colors.danger}14`, borderColor: `${colors.danger}33` },
+  ringLocked: { backgroundColor: `${colors.warning}14`, borderColor: `${colors.warning}33` },
+  lockedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: radius.pill,
+    backgroundColor: `${colors.warning}1F`,
+    marginBottom: spacing.md,
+  },
+  lockedBadgeText: { fontSize: 11, fontWeight: '700', color: colors.warningStrong, letterSpacing: 0.2 },
   title: {
     marginTop: spacing.lg,
     color: colors.text,
@@ -56,9 +77,10 @@ const styles = StyleSheet.create({
     height: 44,
     paddingHorizontal: spacing.xl,
     borderRadius: radius.md,
-    backgroundColor: colors.card,
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.sm,
   },
-  actionText: { color: colors.ink, fontSize: 15, fontWeight: '700' },
+  actionText: { color: colors.onAccent, fontSize: 15, fontWeight: '700' },
 });

@@ -29,7 +29,7 @@ Payloads may be plain objects (sent as JSON) or `FormData` (sent as multipart, f
 | `updateCategory(id, payload)` | POST | `/categories/update/{id}` |
 | `toggleCategoryStatus(id)` | GET | `/categories/statusChange/{id}` |
 | `deleteCategory(id)` | DELETE | `/categories/{id}` |
-| `getBrands()` … `deleteBrand(id)` | same as categories | `BRANDS_PATH` (currently `/categories`, see below) |
+| `getBrands()` … `deleteBrand(id)` | same as categories | `/categories` (the API tracker lists the Categories route family for Brands) |
 | `getProducts(query)` | GET | `/products?…` |
 | `createProduct(payload)` | POST | `/products/store` |
 | `getProduct(id)` | GET | `/products/{id}/edit` |
@@ -44,6 +44,68 @@ Payloads may be plain objects (sent as JSON) or `FormData` (sent as multipart, f
 | `updateSupplier(id, payload)` | POST | `/suppliers/update` (id sent in the body) |
 | `deleteSupplier(id)` | DELETE | `/suppliers/{id}` |
 | `searchProducts({ categoryId, branchId, search, barcode })` | GET | `/get-products?category_id&branch_id&search&barcode` |
+| `getPurchaseFormData()` | GET | `/productPurchase/create` |
+| `getPurchases(query)` | GET | `/productPurchase?…` |
+| `createPurchase(payload)` | POST | `/productPurchase/store` |
+| `getPurchase(id)` | GET | `/productPurchase/{id}/edit` |
+| `updatePurchase(id, payload)` | POST | `/productPurchase/update` (id sent in the body) |
+| `deletePurchase(id)` | POST | `/productPurchase/delete/{id}` |
+| `getProductBatches(query)` | GET | `/productBatch?…` |
+| `createProductBatch(payload)` | POST | `/productBatch/store` |
+| `getProductBatch(id)` | GET | `/productBatch/{id}/edit` |
+| `updateProductBatch(id, payload)` | POST | `/productBatch/update` (id sent in the body) |
+| `deleteProductBatch(id)` | DELETE | `/productBatch/{id}` |
+| `getProductBatchBarcode(id)` | GET | `/productBatch/barcode/{id}` |
+| `getStockLedger({ branchId, productId, from, to })` | GET | `/stockLedger?…` |
+| `searchCustomer(phone)` | POST | `/searchCustomer` |
+| `productSearch(search)` | GET | `/product-search?search=…` |
+| `searchProductByBarcode(barcode)` | GET | `/search-product-by-barcode?barcode=…` |
+| `getBills(query)` | GET | `/billHistory?…` |
+| `getBill(id)` | GET | `/bill/{id}/edit` |
+| `createBill(payload)` | POST | `/bill/store` |
+| `updateBill(id, payload)` | POST | `/bill/update` (id sent in the body) |
+| `printBill(id)` | GET | `/bill/print-bill/{id}` |
+| `refundBill(payload)` | POST | `/bill/saleRefund` (id sent in the body) |
+| `getExpenseCategories()` | GET | `/expense/category` |
+| `createExpenseCategory(payload)` | POST | `/expense/category/store` |
+| `getExpenseCategory(id)` | GET | `/expense/category/{id}/edit` |
+| `updateExpenseCategory(id, payload)` | POST | `/expense/category/update` (id sent in the body) |
+| `deleteExpenseCategory(id)` | DELETE | `/expense/category/{id}` |
+| `getExpenses(query)` | GET | `/expense?…` |
+| `createExpense(payload)` | POST | `/expense/store` |
+| `getExpense(id)` | GET | `/expense/{id}/edit` |
+| `updateExpense(id, payload)` | POST | `/expense/update` (id sent in the body) |
+| `deleteExpense(id)` | DELETE | `/expense/delete/{id}` |
+| `downloadExpenseBills(id)` | GET | `/expense/{id}/download-bills` |
+| `getCollectionReport(query)` | GET | `/collectionReport?…` |
+| `getIncomeReport(query)` | GET | `/incomeReport?…` |
+| `getSalesItemReport(query)` | GET | `/salesItemReport?…` |
+| `getSalesCategoryReport(query)` | GET | `/salesCategoryReport?…` |
+| `getInStockReport(query)` | GET | `/inStockReport?…` |
+| `getOutOfStockReport(query)` | GET | `/outOfStockReport?…` |
+| `getRefundBillList(query)` | GET | `/refundBillList?…` |
+| `getReturnedItems(query)` | GET | `/returnedItems?…` |
+
+## Frontend wiring status
+
+The backend-completed API groups are connected to these app flows:
+
+| API group | Frontend flow |
+| --- | --- |
+| Login, refresh, logout | `AuthContext` and `RootNavigator`; logout is available from the account menu and More screen |
+| Shop, countries/states/cities, branches | More → Store settings / Manage Branches; shared entity forms load dependent location options |
+| Categories, brands, suppliers and supplier types | More → their management lists and forms |
+| Products and branch stock | Stock list, Add item and Product details (per-branch stock read/update) |
+| Purchase history, create/edit/delete and form data | Purchase list and purchase-order form |
+| Product batches and barcode | More → Stock details; the batch list action requests its barcode |
+| Stock ledger | More → Stock ledger, with a branch filter |
+| Customer/product/barcode search for billing | New bill flow |
+| Expense categories and expenses | More → Expense categories / Expenses lists and forms; the expense list's download action requests a bill |
+| Collection/income/sales/stock/refund/return reports | More → Reports → each report list, with a date filter where the report supports one |
+
+`/get-products` is used for stock filters, but the tracker marks that endpoint Pending. Purchase-request and supplier-payment routes are also Pending. Do not treat those groups as backend-completed. The expense and report routes above are marked Completed on the backend but Pending on QA — their response shapes aren't confirmed yet, so the frontend reads them defensively (see `manage/entities.js`'s `expense` entity and `modules/reports/reports.js`).
+
+Billing create/update/print/refund/history/detail routes now use the confirmed `/bill…` and `/billHistory` paths from the tracker.
 
 ## Tokens and refresh
 
@@ -61,7 +123,7 @@ Network failures have `status: 0`. Aborted requests (`signal`) rethrow the origi
 
 ## Open questions
 
-- **Brands path:** the spec gives the category URLs for brands too, which looks like a copy-paste error. Change `BRANDS_PATH` in `endpoints/brands.js` once the real path (probably `/brands`) is confirmed.
+- **Brands path:** the API tracker currently lists the Categories route family for Brands. The frontend follows that contract through `BRANDS_PATH` in `endpoints/brands.js`; switch it only if the backend confirms a separate Brands route family.
 - **Login response (confirmed):** `POST /login` success returns
   `{ status: true, message, access_token, refresh_token, user: { id, name, username, login_id, email, roles: ['Admin'] } }`.
   Tokens are read from the top-level keys and stored. `AuthContext` maps the user to

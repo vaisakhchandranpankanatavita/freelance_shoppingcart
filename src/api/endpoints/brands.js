@@ -1,6 +1,6 @@
 import { apiRequest } from '../client';
 
-const BRANDS_PATH = '/categories'; // TODO: spec lists category URLs for brands — confirm real path (likely /brands)
+const BRANDS_PATH = '/categories';
 
 export const getBrands = () => apiRequest(BRANDS_PATH);
 

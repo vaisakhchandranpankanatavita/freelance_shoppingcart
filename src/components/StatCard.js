@@ -2,7 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Icon from './Icon';
-import { colors, radius, spacing, fonts } from '../theme';
+import { colors, radius, shadows, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
 
 export default function StatCard({ icon, label, value, delta, index = 0, style }) {
@@ -29,9 +29,12 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.line,
     borderRadius: radius.xl,
     padding: 18,
     minHeight: 170,
+    ...shadows.sm,
   },
   iconBox: {
     width: 40,

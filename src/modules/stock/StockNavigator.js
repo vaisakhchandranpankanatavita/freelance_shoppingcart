@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import StockListScreen from './StockListScreen';
 import AddStockScreen from './AddStockScreen';
 import ProductDetailScreen from './ProductDetailScreen';
-import { stackScreenOptions, sharedElementOptions } from '../../navigation/stackOptions';
+import { stackScreenOptions, sharedElementOptions, bottomSheetScreenOptions } from '../../navigation/stackOptions';
 
 const Stack = createNativeStackNavigator();
 
@@ -11,7 +11,7 @@ export default function StockNavigator() {
   return (
     <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen name="StockList" component={StockListScreen} />
-      <Stack.Screen name="AddStock" component={AddStockScreen} />
+      <Stack.Screen name="AddStock" component={AddStockScreen} options={bottomSheetScreenOptions} />
       <Stack.Screen name="ProductDetail" component={ProductDetailScreen} options={sharedElementOptions} />
     </Stack.Navigator>
   );

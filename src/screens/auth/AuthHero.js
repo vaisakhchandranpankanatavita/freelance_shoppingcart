@@ -9,14 +9,14 @@ import { colors, spacing, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 
 // Distance from the top safe-area edge to the shelves: padding 16 + brand row 32 +
-// title margin 24 + title 38 + subtitle margin 4 + subtitle 20 + gap 16. Every line
+// title margin 24 + title 32 + subtitle margin 4 + subtitle 20 + gap 16. Every line
 // height above is explicit, so the splash and loader can land the artwork exactly here.
 export const AUTH_SHELF_TOP = 150;
 export const BRAND_MARK_TAG = 'brandMark'; // shared element: Splash's basket flies into this corner mark
 export const AUTH_SHELF_BOTTOM = 56; // hero padding under the shelves
 export const AUTH_HERO_H = AUTH_SHELF_TOP + 210 + AUTH_SHELF_BOTTOM;
 
-// Shared top of Sign In / Sign Up: a charcoal store aisle with a scanner beam
+// Shared top of Sign In / Sign Up: a light store aisle with a scanner beam
 // sweeping the shelves. The screen's receipt slip overlaps its lower edge.
 // `still` freezes it into a static frame — no entrance animations, empty shelves — which the
 // post-login loader shows first so Sign in melts into it without a cut.
@@ -26,7 +26,14 @@ export default function AuthHero({ title, subtitle, switchLabel, switchIcon, onS
     <View style={[styles.hero, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.row}>
         <View style={styles.brand} accessibilityLabel="Grocery Admin">
-          <Animated.View sharedTransitionTag={BRAND_MARK_TAG} style={styles.mark}>
+          {/* Only the real Sign in/up hero claims the shared-element tag (Splash's basket flies
+              into it). The post-login loader also renders this component with `still`, frozen in
+              place for visual continuity — not a navigator transition — so it must not claim the
+              same tag: Reanimated's native shared-element engine pairs tagged views by unmount/
+              mount timing, and RootNavigator's key swap unmounts the real hero and mounts this
+              frozen one in the same commit, which fights that engine for a second, unrelated
+              pairing. Web has no native shared-element engine, so this was invisible there. */}
+          <Animated.View sharedTransitionTag={still ? undefined : BRAND_MARK_TAG} style={styles.mark}>
             <Icon name="basket" size={18} color={colors.ink} />
           </Animated.View>
           <Text style={styles.brandText}>Grocery Admin</Text>
@@ -89,6 +96,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
     fontFamily: fonts.display,
     letterSpacing: -1,
+    textAlign: 'center',
     paddingHorizontal: spacing.xl,
     marginTop: spacing.xl,
   },
@@ -96,6 +104,7 @@ const styles = StyleSheet.create({
     color: colors.inkMuted,
     fontSize: 15,
     lineHeight: 20,
+    textAlign: 'center',
     paddingHorizontal: spacing.xl,
     marginTop: spacing.xs,
     marginBottom: spacing.lg,

@@ -4,7 +4,7 @@ import Animated, { Extrapolation, interpolate, useAnimatedStyle } from 'react-na
 import Icon from './Icon';
 import PressableScale from './PressableScale';
 import Waveform from './Waveform';
-import { colors, radius, tones } from '../theme';
+import { colors, fonts, radius, spacing, tones } from '../theme';
 
 // One card of the dashboard carousel. As it scrolls off to the left it shrinks
 // and dims (driven by the carousel's UI-thread scroll offset).
@@ -57,20 +57,15 @@ export default function MetricCard({ metric, index, scrollX, interval, width, on
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.card,
+    overflow: 'hidden',
+    backgroundColor: colors.bg,
     borderRadius: radius.sm,
-    paddingHorizontal: 14,
-    paddingTop: 12,
-    paddingBottom: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.18,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
   top: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  value: { color: colors.ink, fontSize: 13, fontWeight: '700' },
-  unit: { color: colors.accent, fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
+  value: { color: colors.ink, fontSize: 13, fontFamily: fonts.bodyBold },
+  unit: { color: colors.accent, fontSize: 9, fontFamily: fonts.bodyBold, letterSpacing: 0.6 },
   badge: {
     width: 24,
     height: 24,
@@ -79,8 +74,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  badgeText: { fontSize: 10, fontWeight: '800' },
-  wave: { marginTop: 10, marginBottom: 12, marginHorizontal: 4 },
-  title: { color: colors.ink, fontSize: 15, fontWeight: '700', letterSpacing: -0.3 },
-  subtitle: { color: colors.inkMuted, fontSize: 11, marginTop: 2 },
+  badgeText: { fontSize: 10, fontFamily: fonts.bodyBold },
+  wave: { marginTop: spacing.xs, marginBottom: spacing.sm, marginHorizontal: spacing.xs },
+  title: { color: colors.ink, fontSize: 15, fontFamily: fonts.bodyBold, letterSpacing: -0.3 },
+  subtitle: { color: colors.inkMuted, fontSize: 11, marginTop: spacing.xs / 2 },
 });

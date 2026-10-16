@@ -14,6 +14,8 @@ import { colors } from '../theme';
 import { spring } from '../theme/motion';
 
 const AXIS = 30;
+const TIP_W = 52;
+const HALO = 14;
 const PAD_TOP = 34; // headroom for the tooltip bubble
 let uid = 0;
 
@@ -35,7 +37,7 @@ function smoothPath(p) {
   return d;
 }
 
-// Area line chart (drawn for a charcoal card): the curve sweeps in left→right, morphs between series, and a
+// Area line chart (drawn for a light card): the curve sweeps in left→right, morphs between series, and a
 // tooltip springs between points as you tap or drag across the plot.
 export default function LineChart({
   series,
@@ -87,6 +89,12 @@ export default function LineChart({
     transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: 0.6 + 0.4 * pop.value }],
   }));
 
+  // At the first/last point the bubble would spill over the y-axis labels (or past the plot's right
+  // edge): slide it back inside while the dot and caret stay on the point.
+  const bubbleStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: Math.min(Math.max(tx.value, TIP_W / 2), plotW - TIP_W / 2) - tx.value }],
+  }));
+
   const pick = (x) => {
     if (!plotW) return;
     const n = series.points.length - 1;
@@ -110,7 +118,7 @@ export default function LineChart({
         <View style={styles.axis}>
           {ticks.map((t) => (
             <Text key={t} style={[styles.axisText, styles.yLabel, { top: PAD_TOP + plotH - (t / max) * plotH - 7 }]}>
-              {t ? `${t}K` : '0'}
+              {t ? format(t) : '0'}
             </Text>
           ))}
         </View>
@@ -144,9 +152,9 @@ export default function LineChart({
             </Animated.View>
 
             <Animated.View pointerEvents="none" style={[styles.tip, tipStyle]}>
-              <View style={styles.bubble}>
+              <Animated.View style={[styles.bubble, bubbleStyle]}>
                 <Text style={styles.bubbleText}>{format(values[selected] ?? 0)}</Text>
-              </View>
+              </Animated.View>
               <View style={styles.caret} />
               <View style={styles.halo}>
                 <View style={styles.dot} />
@@ -158,7 +166,7 @@ export default function LineChart({
 
       <View style={[styles.xAxis, { marginLeft: AXIS }]}>
         {series.labels.map((l) => (
-          <Text key={l} style={styles.axisText}>
+          <Text key={l} style={[styles.axisText, styles.xLabel]} numberOfLines={1} adjustsFontSizeToFit>
             {l}
           </Text>
         ))}
@@ -167,15 +175,13 @@ export default function LineChart({
   );
 }
 
-const TIP_W = 52;
-const HALO = 14;
-
 const styles = StyleSheet.create({
   axis: { width: AXIS },
   axisText: { color: colors.inkMuted, fontSize: 11, fontWeight: '600', opacity: 0.7 },
   yLabel: { position: 'absolute', left: 0, lineHeight: 14 },
   reveal: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
-  xAxis: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16 },
+  xAxis: { flexDirection: 'row', marginTop: 16 },
+  xLabel: { flex: 1, textAlign: 'center', paddingHorizontal: 1 },
   // Anchored so the halo's centre sits on (translateX, translateY).
   tip: {
     position: 'absolute',
@@ -193,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bubbleText: { color: colors.ink, fontSize: 12, fontWeight: '800' },
+  bubbleText: { color: colors.onAccent, fontSize: 12, fontWeight: '800' },
   caret: {
     width: 0,
     height: 0,

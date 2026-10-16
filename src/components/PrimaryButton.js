@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
+  Extrapolation,
   FadeIn,
+  interpolate,
+  interpolateColor,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -12,7 +15,17 @@ import Animated, {
 import Icon from './Icon';
 import PressableScale from './PressableScale';
 import GradientBorder from './GradientBorder';
-import { colors, typography } from '../theme';
+import { colors, radius, shadows, typography } from '../theme';
+
+const PRESS_SCALE = 0.96;
+
+// Fill color to settle into under a finger, per variant — a shade deeper than the resting
+// fill, same hue, so pressing reads as the surface darkening rather than a flat opacity flash.
+const PRESSED_FILL = {
+  light: colors.ctaStrong,
+  dark: colors.chip,
+  gradient: colors.cardFade,
+};
 
 const BAND = 72;
 
@@ -51,8 +64,8 @@ function SweepLoader({ label, color }) {
   );
 }
 
-// variant: 'gradient' (outlined, the hero CTA) | 'light' (cyan pill) | 'dark' (graphite pill)
-// square: sharp corners instead of a pill.
+// variant: 'gradient' (outlined CTA) | 'light' (accent fill) | 'dark' (quiet neutral fill)
+// square: sharp corners instead of the standard rounded rectangle.
 // loadingLabel: replaces the spinner with a sweeping "{label}..." animation.
 export default function PrimaryButton({
   title,
@@ -66,7 +79,15 @@ export default function PrimaryButton({
   icon,
   style,
 }) {
-  const fg = variant === 'light' ? colors.onAccent : colors.text;
+  const fg = variant === 'light' ? colors.onCta : colors.text;
+  // Shared with PressableScale so the fill's color settles into its pressed shade on the exact
+  // same spring driving the squish, instead of a second animation racing it.
+  const scale = useSharedValue(1);
+  const restFill = variant === 'light' ? colors.cta : variant === 'dark' ? colors.elevated2 : colors.bg;
+  const fillStyle = useAnimatedStyle(() => {
+    const t = interpolate(scale.value, [PRESS_SCALE, 1], [1, 0], Extrapolation.CLAMP);
+    return { backgroundColor: interpolateColor(t, [0, 1], [PRESSED_FILL[variant], restFill]) };
+  });
   let content;
   if (loading && loadingLabel) content = <SweepLoader label={loadingLabel} color={fg} />;
   else if (loading) content = <ActivityIndicator color={fg} />;
@@ -80,28 +101,27 @@ export default function PrimaryButton({
       </View>
     );
   const btn = [styles.btn, square && styles.square, compact && styles.compact];
+  // The button content clips to its own rounded corners (for the sweep loader band), so the
+  // shadow has to live one layer up on this wrapper instead — same radius, never clipped.
+  const buttonRadius = compact ? 10 : square ? 0 : radius.md;
+  const innerRadius = Math.max(0, buttonRadius - 2);
 
   return (
     <PressableScale
+      scaleTo={PRESS_SCALE}
+      sharedScale={scale}
       onPress={onPress}
       disabled={disabled || loading}
       accessibilityLabel={title}
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
-      style={[disabled && { opacity: 0.5 }, style]}
+      style={[{ borderRadius: buttonRadius }, shadows.sm, disabled && { opacity: 0.5 }, style]}
     >
       {variant === 'gradient' ? (
-        <GradientBorder width={2} borderRadius={square ? 0 : 999} innerStyle={btn}>
+        <GradientBorder width={2} borderRadius={buttonRadius} innerStyle={[btn, fillStyle, { borderRadius: innerRadius }]}>
           {content}
         </GradientBorder>
       ) : (
-        <View
-          style={[
-            btn,
-            { backgroundColor: variant === 'light' ? colors.accent : colors.elevated2 },
-          ]}
-        >
-          {content}
-        </View>
+        <Animated.View style={[btn, fillStyle]}>{content}</Animated.View>
       )}
     </PressableScale>
   );
@@ -110,7 +130,7 @@ export default function PrimaryButton({
 const styles = StyleSheet.create({
   btn: {
     height: 56,
-    borderRadius: 999,
+    borderRadius: radius.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 24,

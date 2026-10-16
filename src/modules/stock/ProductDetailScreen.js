@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
 import SharedBadge from '../../components/SharedBadge';
 import InputField from '../../components/InputField';
 import SelectField from '../../components/SelectField';
@@ -11,6 +11,7 @@ import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
 import Icon from '../../components/Icon';
 import { useFeedback } from '../../components/Feedback';
+import { useAuth } from '../../context/AuthContext';
 import {
   deleteProduct,
   getBranches,
@@ -32,6 +33,9 @@ const pick = (o, keys) => str(keys.map((k) => o?.[k]).find((v) => v != null && v
 export default function ProductDetailScreen({ navigation, route }) {
   const { productId, name: initialName } = route.params;
   const { toast, confirm } = useFeedback();
+  const { can } = useAuth();
+  const canDelete = can('delete', 'product');
+  const canUpdate = can('update', 'product');
   const [form, setForm] = useState({ name: initialName ?? '', price: '', lowAt: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(true);
@@ -49,8 +53,10 @@ export default function ProductDetailScreen({ navigation, route }) {
     setLoadError('');
     try {
       const p = toItem(await getProduct(productId));
+      // `item_name` is the confirmed key (see stock/mappers.js's productName, sourced from a
+      // live GET /products response) — `pick(p, ['name'])` alone left this blank on every edit.
       setForm({
-        name: pick(p, ['name']),
+        name: pick(p, ['item_name', 'name']),
         price: pick(p, ['selling_price', 'price', 'sale_price']),
         lowAt: pick(p, ['low_stock_alert', 'alert_quantity']),
       });
@@ -80,6 +86,7 @@ export default function ProductDetailScreen({ navigation, route }) {
     setSaving(true);
     try {
       await updateProduct(productId, {
+        item_name: form.name.trim(),
         name: form.name.trim(),
         selling_price: Number(form.price),
         price: Number(form.price),
@@ -153,12 +160,15 @@ export default function ProductDetailScreen({ navigation, route }) {
   };
 
   return (
-    <Screen>
-      <ScreenHeader
-        title="Item details"
-        onBack={() => navigation.goBack()}
-        right={<SharedBadge tag={`stock-${productId}`} icon="cube" size={44} radius={16} />}
-      />
+    <Screen
+      header={
+        <ScreenHeader
+          title="Item details"
+          onBack={() => navigation.goBack()}
+          right={<SharedBadge tag={`stock-${productId}`} icon="cube" size={44} radius={16} />}
+        />
+      }
+    >
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator color={colors.text} />
@@ -166,15 +176,23 @@ export default function ProductDetailScreen({ navigation, route }) {
       ) : loadError ? (
         <EmptyState tone="error" icon="cloud-offline-outline" title="Can't load item" message={loadError} actionLabel="Try again" onAction={fetchProduct} />
       ) : (
-        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <Animated.View entering={enter(0)}>
-              <InputField label="Item name" icon="pricetag-outline" value={form.name} error={errors.name} autoCapitalize="words" onChangeText={(v) => set('name', v)} />
-              <View style={styles.pair}>
-                <InputField style={styles.cell} label="Price (₹)" icon="cash-outline" value={form.price} error={errors.price} keyboardType="numeric" onChangeText={(v) => set('price', v)} />
-                <InputField style={styles.cell} label="Low stock at" icon="alert-circle-outline" value={form.lowAt} keyboardType="numeric" onChangeText={(v) => set('lowAt', v)} />
+            {!canUpdate ? (
+              <View style={styles.readOnlyBanner}>
+                <Icon name="lock-closed-outline" size={15} color={colors.textMuted} />
+                <Text style={styles.readOnlyText}>View only • Admin access required to edit product</Text>
               </View>
-              <PrimaryButton title="Save changes" icon="checkmark" variant="light" onPress={onSave} loading={saving} />
+            ) : null}
+            <Animated.View entering={enter(0)}>
+              <InputField label="Item name" icon="pricetag-outline" value={form.name} error={errors.name} autoCapitalize="words" onChangeText={(v) => canUpdate && set('name', v)} editable={canUpdate} />
+              <View style={styles.pair}>
+                <InputField style={styles.cell} label="Price (₹)" icon="cash-outline" value={form.price} error={errors.price} keyboardType="numeric" onChangeText={(v) => canUpdate && set('price', v)} editable={canUpdate} />
+                <InputField style={styles.cell} label="Low stock at" icon="alert-circle-outline" value={form.lowAt} keyboardType="numeric" onChangeText={(v) => canUpdate && set('lowAt', v)} editable={canUpdate} />
+              </View>
+              {canUpdate ? (
+                <PrimaryButton title="Save changes" icon="checkmark" variant="light" onPress={onSave} loading={saving} />
+              ) : null}
             </Animated.View>
 
             <Animated.View entering={enter(1)} style={styles.section}>
@@ -188,20 +206,23 @@ export default function ProductDetailScreen({ navigation, route }) {
                   icon="cube-outline"
                   value={r.qty}
                   keyboardType="numeric"
-                  onChangeText={(v) => setStock((all) => all.map((x) => (x.id === r.id ? { ...x, qty: v } : x)))}
+                  editable={canUpdate}
+                  onChangeText={(v) => canUpdate && setStock((all) => all.map((x) => (x.id === r.id ? { ...x, qty: v } : x)))}
                 />
               ))}
-              {stock.length ? (
+              {stock.length && canUpdate ? (
                 <PrimaryButton title="Update stock" icon="checkmark" variant="light" onPress={onStockSave} loading={stockSaving} />
               ) : null}
             </Animated.View>
 
-            <Animated.View entering={enter(2)}>
-              <PressableScale style={styles.delete} onPress={onDelete} accessibilityLabel="Delete item">
-                <Icon name="trash-outline" size={18} color={colors.danger} />
-                <Text style={styles.deleteText}>Delete item</Text>
-              </PressableScale>
-            </Animated.View>
+            {canDelete ? (
+              <Animated.View entering={enter(2)}>
+                <PressableScale style={styles.delete} onPress={onDelete} accessibilityLabel="Delete item">
+                  <Icon name="trash-outline" size={18} color={colors.danger} />
+                  <Text style={styles.deleteText}>Delete item</Text>
+                </PressableScale>
+              </Animated.View>
+            ) : null}
           </ScrollView>
         </KeyboardAvoidingView>
       )}
@@ -211,7 +232,7 @@ export default function ProductDetailScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  scroll: { paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xxl },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: spacing.xxl },
   pair: { flexDirection: 'row', gap: spacing.md },
   cell: { flex: 1 },
   section: { marginTop: spacing.xl },
@@ -226,5 +247,16 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.elevated2,
   },
-  deleteText: { color: colors.danger, fontWeight: '700', fontSize: 15 },
+  deleteText: { color: colors.dangerStrong, fontWeight: '700', fontSize: 15 },
+  readOnlyBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.chip,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderRadius: radius.md,
+    marginBottom: spacing.md,
+  },
+  readOnlyText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
 });

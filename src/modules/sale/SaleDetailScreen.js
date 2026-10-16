@@ -1,16 +1,23 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../../components/Icon';
 import Screen from '../../components/Screen';
-import ScreenHeader from '../../components/ScreenHeader';
+import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
 import SharedBadge from '../../components/SharedBadge';
+import IconButton from '../../components/IconButton';
 import SectionCard from '../../components/SectionCard';
 import Heading from '../../components/Heading';
+import BottomBar from '../../components/BottomBar';
+import PrimaryButton from '../../components/PrimaryButton';
+import { useFeedback } from '../../components/Feedback';
 import { colors, spacing, radius, fonts } from '../../theme';
+import { rupees, rupeesExact, shortDate } from '../../utils/format';
+import { getSale, refundSale } from './services';
 
 const DELIVERY_LABELS = {
-  pickup: 'Store Pickup',
-  home: 'Home Delivery',
+  pickup: 'Store pickup',
+  home: 'Home delivery',
   express: 'Express',
 };
 
@@ -20,29 +27,30 @@ const DELIVERY_ICONS = {
   express: 'flash-outline',
 };
 
-const PAYMENT_LABELS = {
-  wallet: 'Wallet',
-  cod: 'Pay On Delivery',
-  'card-mc': 'Mastercard •••• 4975',
-  'card-visa': 'Visa •••• 4975',
-  'bank-sbi': 'SBI Net Banking',
-  'bank-hdfc': 'HDFC Net Banking',
-};
-
 const MODE_ICONS = {
   Cash: 'cash-outline',
   UPI: 'phone-portrait-outline',
   Card: 'card-outline',
 };
 
-const money = (n) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
 export default function SaleDetailScreen({ route, navigation }) {
-  const { sale } = route.params || {};
+  const { sale: initialSale } = route.params || {};
+  const [sale, setSale] = useState(initialSale);
+  const { toast, confirm } = useFeedback();
+  const [refunding, setRefunding] = useState(false);
+
+  // Row 72: refresh from the bill's own detail each time this screen comes into focus (e.g.
+  // after saving an edit), falling back to whatever the list screen already passed in.
+  useFocusEffect(
+    useCallback(() => {
+      if (!initialSale?.id) return;
+      getSale(initialSale.id).then(setSale).catch(() => {});
+    }, [initialSale?.id])
+  );
+
   if (!sale) {
     return (
-      <Screen>
-        <ScreenHeader title="Sale details" onBack={() => navigation.goBack()} />
+      <Screen header={<ScreenHeader title="Sale details" onBack={() => navigation.goBack()} />}>
         <Text style={styles.empty}>Sale not found.</Text>
       </Screen>
     );
@@ -55,33 +63,87 @@ export default function SaleDetailScreen({ route, navigation }) {
     phone,
     delivery,
     mode,
-    paymentMethod,
     items = 0,
+    fee = 0,
     total = 0,
     cart = [],
   } = sale;
 
-  const subtotal = Number(total) || 0;
-  const tax = +(subtotal * 0.05).toFixed(2);
-  const grand = +(subtotal + tax).toFixed(2);
+  // `total` is what the customer was charged (grand_total) — the bill, the refund and the
+  // reprint all use it as-is. The item subtotal is rebuilt from the lines for the breakdown.
+  const grand = Number(total) || 0;
+  const deliveryFee = Number(fee) || 0;
+  const subtotal = cart.length ? cart.reduce((s, i) => s + i.qty * i.price, 0) : grand - deliveryFee;
+  const itemCount = items || cart.reduce((s, i) => s + i.qty, 0);
+  // Anything the backend added or took off beyond items + delivery (tax, rounding, discount) is
+  // shown as its own line so the breakdown always adds up to what was paid.
+  const adjustment = Math.round((grand - subtotal - deliveryFee) * 100) / 100;
+
+  const reprintReceipt = () => {
+    navigation.navigate('BillPreview', {
+      invoiceId: id,
+      date,
+      customer,
+      phone,
+      delivery,
+      mode,
+      cart,
+      items: itemCount,
+      total: subtotal,
+      fee: deliveryFee,
+      grand,
+      fromReprint: true,
+    });
+  };
+
+  const onRefund = async () => {
+    const ok = await confirm({
+      title: 'Refund this bill?',
+      message: `${rupeesExact(grand)} goes back to ${customer || 'the customer'}. This can't be undone.`,
+      confirmLabel: 'Refund',
+      destructive: true,
+    });
+    if (!ok) return;
+    setRefunding(true);
+    try {
+      await refundSale(id, { amount: grand });
+      toast({ tone: 'success', title: 'Bill refunded' });
+    } catch (e) {
+      toast({ tone: 'error', title: "Couldn't refund", message: e.message || 'Try again.' });
+    } finally {
+      setRefunding(false);
+    }
+  };
 
   return (
-    <Screen>
-      <ScreenHeader
-        title="Sale details"
-        onBack={() => navigation.goBack()}
-        right={<SharedBadge tag={`sale-${id}`} letter={String(customer).charAt(0).toUpperCase()} size={44} radius={22} />}
-      />
-
+    <Screen
+      header={
+        <ScreenHeader
+          title="Sale details"
+          onBack={() => navigation.goBack()}
+          right={
+            <View style={styles.headerActions}>
+              <IconButton
+                icon="create-outline"
+                size={40}
+                onPress={() => navigation.navigate('NewSale', { saleId: id })}
+                accessibilityLabel="Edit bill"
+              />
+              <SharedBadge tag={`sale-${id}`} letter={String(customer).charAt(0).toUpperCase()} size={44} radius={22} />
+            </View>
+          }
+        />
+      }
+    >
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <SectionCard tone="light" fade index={0} style={styles.hero}>
-          <Text style={styles.heroLabel}>Total amount</Text>
+          <Text style={styles.heroLabel}>Total paid</Text>
           <Heading level="display" tone="light" style={styles.heroTotal} numberOfLines={1} adjustsFontSizeToFit>
-            ₹{money(grand)}
+            {rupeesExact(grand)}
           </Heading>
           <View style={styles.heroChips}>
-            <Chip icon="receipt-outline" text={id} />
-            <Chip icon="calendar-outline" text={date} />
+            <Chip icon="receipt-outline" text={`Bill ${id}`} />
+            <Chip icon="calendar-outline" text={shortDate(date)} />
           </View>
         </SectionCard>
 
@@ -94,7 +156,7 @@ export default function SaleDetailScreen({ route, navigation }) {
           <Row label="Type" value={DELIVERY_LABELS[delivery] || 'Store Pickup'} />
         </SectionCard>
 
-        <SectionCard icon="cart-outline" title={`Items (${items || cart.reduce((s, i) => s + i.qty, 0)})`} index={3}>
+        <SectionCard icon="cart-outline" title={`Items (${itemCount})`} index={3}>
           {cart.length === 0 ? (
             <Text style={styles.mutedText}>Item breakdown not available for this sale.</Text>
           ) : (
@@ -105,9 +167,9 @@ export default function SaleDetailScreen({ route, navigation }) {
                 </View>
                 <View style={{ flex: 1, marginLeft: spacing.md }}>
                   <Text style={styles.itemName} numberOfLines={1}>{i.name}</Text>
-                  <Text style={styles.itemMeta}>Qty {i.qty} × ₹{i.price}</Text>
+                  <Text style={styles.itemMeta} numberOfLines={1}>Qty {i.qty} × ₹{i.price}</Text>
                 </View>
-                <Text style={styles.itemTotal}>₹{(i.qty * i.price).toLocaleString()}</Text>
+                <Text style={styles.itemTotal}>{rupees(i.qty * i.price)}</Text>
               </View>
             ))
           )}
@@ -115,16 +177,23 @@ export default function SaleDetailScreen({ route, navigation }) {
 
         <SectionCard icon="wallet-outline" title="Payment" index={4}>
           <Row label="Mode" value={mode || 'Cash'} valueIcon={MODE_ICONS[mode] || 'cash-outline'} />
-          {paymentMethod ? <Row label="Method" value={PAYMENT_LABELS[paymentMethod] || paymentMethod} /> : null}
           <View style={styles.divider} />
-          <Row label="Subtotal" value={`₹${subtotal.toLocaleString()}`} />
-          <Row label="Tax (5%)" value={`₹${tax.toLocaleString()}`} />
+          <Row label="Subtotal" value={rupeesExact(subtotal)} />
+          {deliveryFee ? <Row label="Delivery fee" value={rupeesExact(deliveryFee)} /> : null}
+          {adjustment ? (
+            <Row label={adjustment > 0 ? 'Other charges' : 'Discount'} value={`${adjustment < 0 ? '−' : ''}${rupeesExact(Math.abs(adjustment))}`} />
+          ) : null}
           <View style={styles.grandRow}>
-            <Text style={styles.grandLabel}>Grand total</Text>
-            <Text style={styles.grandValue}>₹{money(grand)}</Text>
+            <Text style={styles.grandLabel}>Total paid</Text>
+            <Text style={styles.grandValue}>{rupeesExact(grand)}</Text>
           </View>
         </SectionCard>
       </ScrollView>
+
+      <BottomBar>
+        <PrimaryButton style={{ flex: 1 }} title="Refund bill" icon="return-down-back-outline" variant="dark" onPress={onRefund} loading={refunding} />
+        <PrimaryButton style={{ flex: 1 }} title="Reprint" icon="print-outline" variant="light" onPress={reprintReceipt} />
+      </BottomBar>
     </Screen>
   );
 }
@@ -141,17 +210,18 @@ function Chip({ icon, text }) {
 function Row({ label, value, valueIcon }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <View style={styles.rowValueWrap}>
+      <Text style={styles.rowLabel} numberOfLines={1}>{label}</Text>
+      <View style={[styles.rowValueWrap, { flexShrink: 1 }]}>
         {valueIcon ? <Icon name={valueIcon} size={14} color={colors.textMuted} style={{ marginRight: 6 }} /> : null}
-        <Text style={styles.rowValue}>{value}</Text>
+        <Text style={styles.rowValue} numberOfLines={1}>{value}</Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  scroll: { paddingHorizontal: spacing.lg, paddingBottom: spacing.xxl },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: 150 },
   hero: { padding: 24 },
   heroLabel: { color: colors.inkMuted, fontSize: 14 },
   heroTotal: { marginTop: spacing.sm, marginBottom: spacing.lg },
@@ -201,5 +271,5 @@ const styles = StyleSheet.create({
   },
   grandLabel: { fontSize: 16, fontFamily: fonts.display, color: colors.text },
   grandValue: { fontSize: 20, fontFamily: fonts.display, color: colors.text },
-  empty: { textAlign: 'center', color: colors.textMuted, marginTop: spacing.xl },
+  empty: { textAlign: 'center', color: colors.textMuted, marginTop: HEADER_HEIGHT + spacing.xl },
 });
