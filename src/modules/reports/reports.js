@@ -1,4 +1,9 @@
 import {
+  getBillStatistics,
+  getCategorySales,
+  getSalePeakHours,
+  getSaleSummary,
+  getSalesRevenue,
   getCollectionReport,
   getInStockReport,
   getIncomeReport,
@@ -38,8 +43,15 @@ const date = (row, keys) => {
 
 // Normalizes one report's response into flat rows with a stable `id`, a `primary` line, an
 // optional `secondary` line, and an optional right-aligned `value`.
-export const toReportRows = (res, mapRow) =>
-  listOf(res).map((row, i) => ({ id: String(row.id ?? i), ...mapRow(row) }));
+export const toReportRows = (res, mapRow, rows) =>
+  (rows ? rows(res) : listOf(res)).map((row, i) => ({ id: String(row.id ?? i), ...mapRow(row) }));
+
+// /billStatistics returns { bills: { monthly: { months, new_bills: {Jan: n}, refunds: {Jan: n} } } }
+// rather than a list — one row per month.
+const monthlyBills = (res) => {
+  const m = res?.bills?.monthly;
+  return (m?.months ?? []).map((month) => ({ month, new_bills: m.new_bills?.[month] ?? 0, refunds: m.refunds?.[month] ?? 0 }));
+};
 
 export const REPORTS = {
   collection: {
@@ -181,6 +193,84 @@ export const REPORTS = {
       secondary: date(r, ['date', 'refund_date', 'created_at']),
       value: money(r, ['amount', 'refund_amount', 'total']),
       chartValue: num(r, ['amount', 'refund_amount', 'total']),
+    }),
+  },
+  // Rows 92-97 (sales analytics). Response shapes unconfirmed — generic fallback chains below.
+  billStatistics: {
+    title: 'Bill statistics',
+    icon: 'receipt-outline',
+    emptyIcon: 'receipt-outline',
+    api: getBillStatistics,
+    rows: monthlyBills,
+    dateFilter: true,
+    chartable: true,
+    chartFormat: (v) => `${Math.round(v)} bills`,
+    mapRow: (r) => ({
+      primary: r.month,
+      secondary: `${r.refunds} refunds`,
+      value: `${r.new_bills} bills`,
+      chartValue: r.new_bills,
+    }),
+  },
+  salePeakHours: {
+    title: 'Sale peak hours',
+    icon: 'time-outline',
+    emptyIcon: 'time-outline',
+    api: getSalePeakHours,
+    dateFilter: true,
+    chartable: true,
+    chartFormat: (v) => `${Math.round(v)} bills`,
+    mapRow: (r) => ({
+      primary: String(r.label ?? r.hour ?? 'Hour'),
+      secondary: null,
+      value: `${r.bill_count ?? 0} bills`,
+      chartValue: Number(r.bill_count) || 0,
+    }),
+  },
+  saleSummary: {
+    title: 'Sale summary',
+    icon: 'stats-chart-outline',
+    emptyIcon: 'stats-chart-outline',
+    api: getSaleSummary,
+    dateFilter: true,
+    chartable: true,
+    chartFormat: rupees,
+    mapRow: (r) => ({
+      primary: pick(r, ['label', 'name', 'date', 'period']) ?? 'Summary',
+      secondary: pick(r, ['bills', 'count', 'total_bills']) != null ? `${pick(r, ['bills', 'count', 'total_bills'])} bills` : null,
+      value: money(r, ['amount', 'total_sale', 'total', 'value']),
+      chartValue: num(r, ['amount', 'total_sale', 'total', 'value']),
+    }),
+  },
+  categorySales: {
+    title: 'Category sales',
+    icon: 'pie-chart-outline',
+    emptyIcon: 'pie-chart-outline',
+    api: getCategorySales,
+    dateFilter: true,
+    chartable: true,
+    chartFormat: rupees,
+    mapRow: (r) => ({
+      primary: pick(r, ['category_name', 'category', 'name']) ?? 'Category',
+      secondary: pick(r, ['quantity', 'qty']) != null ? `${pick(r, ['quantity', 'qty'])} sold` : null,
+      value: money(r, ['amount', 'total_sale', 'total']),
+      chartValue: num(r, ['amount', 'total_sale', 'total']),
+    }),
+  },
+  salesRevenue: {
+    title: 'Sales revenue',
+    icon: 'cash-outline',
+    emptyIcon: 'cash-outline',
+    api: getSalesRevenue,
+    // POST /revenue always returns a fixed 30-day window starting today and ignores fromdate/todate.
+    dateFilter: false,
+    chartable: true,
+    chartFormat: rupees,
+    mapRow: (r) => ({
+      primary: pick(r, ['label', 'date', 'name', 'month']) ?? 'Revenue',
+      secondary: pick(r, ['day']),
+      value: money(r, ['revenue', 'amount', 'total']),
+      chartValue: num(r, ['revenue', 'amount', 'total']),
     }),
   },
   returnedItems: {

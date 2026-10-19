@@ -66,7 +66,8 @@ export default function EntityFormScreen({ navigation, route }) {
     setLoading(true);
     setLoadError('');
     try {
-      const item = itemOf(await (config.singleton ? api.get() : api.get(id)));
+      const raw = itemOf(await (config.singleton ? api.get() : api.get(id)));
+      const item = config.normalize && raw ? config.normalize(raw) : raw;
       // The name field uses nameOf's fallback chain too — brand records currently come back
       // shaped as categories (see nameOf's comment in entities.js), so `item.brand_name` alone
       // would be blank for every existing brand.

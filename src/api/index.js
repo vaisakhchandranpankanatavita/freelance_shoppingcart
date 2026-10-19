@@ -17,3 +17,8 @@ export * from './endpoints/purchaseRequests';
 export * from './endpoints/supplierPayments';
 export * from './endpoints/expenses';
 export * from './endpoints/reports';
+export * from './endpoints/salesAnalytics';
+export * from './endpoints/roles';
+export * from './endpoints/permissions';
+export * from './endpoints/staff';
+export * from './endpoints/dashboard';

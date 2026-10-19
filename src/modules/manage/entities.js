@@ -4,8 +4,23 @@ import {
   createCategory,
   createExpense,
   createExpenseCategory,
+  createPermission,
   createProductBatch,
+  createRole,
+  createStaff,
   createSupplier,
+  deletePermission,
+  deleteRole,
+  deleteStaff,
+  getPermission,
+  getPermissions,
+  getRole,
+  getRoles,
+  getStaff,
+  getStaffMember,
+  updatePermission,
+  updateRole,
+  updateStaff,
   deleteBranch,
   deleteBrand,
   deleteCategory,
@@ -298,6 +313,47 @@ export const ENTITIES = {
       description,
       { key: 'status', label: 'Status', icon: 'toggle-outline', type: 'select', lookup: 'expenseStatuses', required: true, default: 'Y' },
     ],
+  },
+  // Rows 98-112. Field names are best guesses until a live response confirms them.
+  staff: {
+    title: 'Staff',
+    singular: 'Staff member',
+    icon: 'people-outline',
+    api: { list: getStaff, get: getStaffMember, create: createStaff, update: updateStaff, remove: deleteStaff },
+    // Confirmed by live responses: users come back under a `user` key, with the role as `is_*`
+    // flags (is_admin, is_manager…) and phone/branch nested in `staff_profile`. The create/update
+    // payload names are NOT confirmed (writes weren't tested against the shared backend).
+    normalize: (s) => ({ ...(s.staff_profile ?? {}), ...s }),
+    subtitle: (s) => {
+      const flag = Object.keys(s).find((k) => k.startsWith('is_') && s[k] === 1 && k !== 'is_email_verified');
+      const role = flag ? flag.slice(3).replace(/_/g, ' ') : '';
+      return [role && role[0].toUpperCase() + role.slice(1), s.staff_profile?.phone ?? s.email].filter(Boolean).join(' • ');
+    },
+    fields: [
+      name('Full name', 'e.g. Anil Kumar'),
+      email,
+      phone,
+      { key: 'password', label: 'Password', icon: 'lock-closed-outline', placeholder: 'Leave blank to keep' },
+    ],
+  },
+  role: {
+    title: 'Roles',
+    singular: 'Role',
+    icon: 'shield-checkmark-outline',
+    api: { list: getRoles, get: getRole, create: createRole, update: updateRole, remove: deleteRole },
+    subtitle: (r) => r.description ?? '',
+    fields: [name('Role name', 'e.g. Cashier'), description],
+  },
+  permission: {
+    title: 'Permissions',
+    singular: 'Permission',
+    icon: 'key-outline',
+    api: {
+      list: getPermissions, get: getPermission, create: createPermission,
+      update: updatePermission, remove: deletePermission,
+    },
+    subtitle: (p) => p.description ?? '',
+    fields: [name('Permission name', 'e.g. create_bill'), description],
   },
   expense: {
     title: 'Expenses',

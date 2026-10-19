@@ -1,4 +1,4 @@
-import { getBranches, getCategories, getProducts, getSuppliers } from '../../api';
+import { getBranches, getCategories, getDashboardAnalytics, getProducts, getSuppliers } from '../../api';
 import { isActive, listOf } from '../manage/entities';
 import { mapStockItems } from '../stock/mappers';
 import { rupeesShort } from '../../utils/format';
@@ -36,11 +36,15 @@ const insightsFrom = (rows) => {
 };
 
 export const getDashboard = async () => {
-  const [products, branches, categories, suppliers] = await Promise.allSettled([
+  const pad = (n) => String(n).padStart(2, '0');
+  const now = new Date();
+  const iso = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const [products, branches, categories, suppliers, analytics] = await Promise.allSettled([
     getProducts(),
     getBranches(),
     getCategories(),
     getSuppliers(),
+    getDashboardAnalytics({ fromdate: iso(new Date(now.getFullYear(), now.getMonth(), 1)), todate: iso(now) }),
   ]);
   if ([products, branches, categories, suppliers].every((r) => r.status === 'rejected')) {
     throw products.reason;
@@ -62,6 +66,11 @@ export const getDashboard = async () => {
     lowStock = [...low].sort((a, b) => a.qty - b.qty).slice(0, 5);
     topStocked = [...rows].sort((a, b) => b.qty * b.price - a.qty * a.price).slice(0, 5);
     if (rows.length) insights = insightsFrom(rows);
+  }
+  // POST /dashboard → { summary: { total_bills, total_customers, total_staffs, … }, sales, bills, stock_alerts }
+  const summary = analytics.status === 'fulfilled' ? analytics.value?.summary : null;
+  if (summary && summary.total_bills != null) {
+    metrics.push({ key: 'bills', title: 'Bills', subtitle: 'Total bills raised', value: Number(summary.total_bills) || 0, unit: 'BILLS', icon: 'receipt-outline', tone: 'cyan', to: ['Sale'] });
   }
   if (branches.status === 'fulfilled') {
     const list = listOf(branches.value);

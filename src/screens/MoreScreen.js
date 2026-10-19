@@ -32,7 +32,9 @@ const SECTIONS = [
   {
     title: 'People',
     items: [
-      { key: 'Staff', label: 'Manage Staff', icon: 'people-outline', adminOnly: true },
+      { key: 'Staff', label: 'Manage Staff', icon: 'people-outline', to: ['EntityList', { entity: 'staff' }], adminOnly: true },
+      { key: 'Roles', label: 'Roles', icon: 'shield-checkmark-outline', to: ['EntityList', { entity: 'role' }], adminOnly: true },
+      { key: 'Permissions', label: 'Permissions', icon: 'key-outline', to: ['EntityList', { entity: 'permission' }], adminOnly: true },
       { key: 'Customers', label: 'Customers', icon: 'person-circle-outline' },
     ],
   },

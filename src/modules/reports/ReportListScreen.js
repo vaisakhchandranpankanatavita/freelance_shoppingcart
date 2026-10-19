@@ -41,7 +41,7 @@ export default function ReportListScreen({ navigation, route }) {
   const load = async () => {
     try {
       const res = await config.api(config.dateFilter ? { from, to } : undefined);
-      setRows(toReportRows(res, config.mapRow));
+      setRows(toReportRows(res, config.mapRow, config.rows));
       setError('');
     } catch (e) {
       setError(e.message || 'Check your connection and try again.');
