@@ -58,5 +58,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  delta: { color: colors.ink, fontSize: 11, fontWeight: '600' },
+  delta: { color: colors.ink, fontSize: 11, fontFamily: fonts.bodySemiBold },
 });

@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Icon from './Icon';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, fonts } from '../theme';
 import { fadeIn } from '../theme/motion';
 
 export default function InputField({
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   label: {
     color: colors.textMuted,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     marginBottom: 4,
     marginLeft: spacing.xs,
   },
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: fonts.bodyMedium,
     color: colors.text,
     paddingVertical: 0,
     ...Platform.select({ web: { outlineStyle: 'none' }, default: {} }),

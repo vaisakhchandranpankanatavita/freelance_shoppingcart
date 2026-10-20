@@ -366,7 +366,7 @@ export default function AddPurchaseScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.sm, paddingBottom: spacing.lg },
-  sectionTitle: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginTop: spacing.md, marginBottom: 4, marginLeft: spacing.sm },
+  sectionTitle: { fontSize: 12, fontFamily: fonts.bodySemiBold, color: colors.textMuted, marginTop: spacing.md, marginBottom: 4, marginLeft: spacing.sm },
   row: { flexDirection: 'row', gap: spacing.sm },
   rowSpacing: { marginTop: spacing.sm },
   cell: { flex: 1 },
@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   thumb: { width: 36, height: 36, borderRadius: 11, backgroundColor: colors.elevated3, alignItems: 'center', justifyContent: 'center' },
-  productName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  productName: { fontSize: 14, fontFamily: fonts.bodySemiBold, color: colors.text },
   productPrice: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
   plusBtn: { width: 28, height: 28, borderRadius: 14, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' },
   cartRowWrap: { marginBottom: spacing.xs, borderRadius: radius.md, overflow: 'hidden' },
@@ -415,10 +415,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.danger,
   },
-  cartName: { flex: 1, color: colors.ink, fontSize: 14, fontWeight: '600' },
+  cartName: { flex: 1, color: colors.ink, fontSize: 14, fontFamily: fonts.bodySemiBold },
   qty: { minWidth: 22, textAlign: 'center', fontFamily: fonts.display, color: colors.ink },
   lineTotal: { minWidth: 60, textAlign: 'right', fontFamily: fonts.display, color: colors.ink },
-  cartErrorText: { color: colors.dangerStrong, fontSize: 12, fontWeight: '600', marginBottom: spacing.sm, marginLeft: spacing.sm },
+  cartErrorText: { color: colors.dangerStrong, fontSize: 12, fontFamily: fonts.bodySemiBold, marginBottom: spacing.sm, marginLeft: spacing.sm },
   delete: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -429,7 +429,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.elevated2,
   },
-  deleteText: { color: colors.dangerStrong, fontWeight: '700', fontSize: 15 },
+  deleteText: { color: colors.dangerStrong, fontFamily: fonts.bodyBold, fontSize: 15 },
   // paddingBottom clears the floating TabBar (position:'absolute', bottom:0 in TabBar.js),
   // which otherwise overlaps this Save button since this screen sits inside PurchaseNavigator's tab stack.
   footer: {
@@ -441,5 +441,5 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.inkLine,
   },
-  footerTotal: { textAlign: 'center', color: colors.textMuted, fontSize: 13, fontWeight: '600' },
+  footerTotal: { textAlign: 'center', color: colors.textMuted, fontSize: 13, fontFamily: fonts.bodySemiBold },
 });

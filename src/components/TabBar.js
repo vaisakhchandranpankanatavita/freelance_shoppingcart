@@ -12,7 +12,7 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from './Icon';
-import { colors, shadows, spacing } from '../theme';
+import { colors, shadows, spacing, fonts } from '../theme';
 import { spring } from '../theme/motion';
 
 const IS_ANDROID = Platform.OS === 'android';
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   labelClip: { overflow: 'hidden' },
   // No fixed width: the clip above animates to this item's own measured width, so the text just
   // needs to render at its natural size and never wrap inside that window.
-  label: { color: colors.accentStrong, fontSize: 12, fontWeight: '700', letterSpacing: 0.1, flexShrink: 0 },
+  label: { color: colors.accentStrong, fontSize: 12, fontFamily: fonts.bodyBold, letterSpacing: 0.1, flexShrink: 0 },
   measure: { position: 'absolute', opacity: 0 },
-  measureLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.1 },
+  measureLabel: { fontSize: 12, fontFamily: fonts.bodyBold, letterSpacing: 0.1 },
 });

@@ -11,7 +11,7 @@ import SegmentedControl from '../../components/SegmentedControl';
 import SummaryTiles from '../../components/SummaryTiles';
 import BarListChart from '../../components/BarListChart';
 import EmptyState from '../../components/EmptyState';
-import { colors, spacing, radius, shadows } from '../../theme';
+import { colors, spacing, radius, shadows, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { plural } from '../../utils/format';
 import { REPORTS, toReportRows } from './reports';
@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: colors.chip,
   },
-  name: { fontSize: 15, fontWeight: '600', color: colors.text },
+  name: { fontSize: 15, fontFamily: fonts.bodySemiBold, color: colors.text },
   sub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  value: { fontSize: 14, fontWeight: '700', color: colors.text },
+  value: { fontSize: 14, fontFamily: fonts.bodyBold, color: colors.text },
 });

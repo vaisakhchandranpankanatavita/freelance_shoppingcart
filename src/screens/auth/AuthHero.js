@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  brandText: { color: colors.ink, fontSize: 15, fontWeight: '700' },
+  brandText: { color: colors.ink, fontSize: 15, fontFamily: fonts.bodyBold },
   switch: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.inkLine,
   },
-  switchText: { color: colors.ink, fontSize: 14, fontWeight: '600' },
+  switchText: { color: colors.ink, fontSize: 14, fontFamily: fonts.bodySemiBold },
   title: {
     color: colors.ink,
     fontSize: 34,

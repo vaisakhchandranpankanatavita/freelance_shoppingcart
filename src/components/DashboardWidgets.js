@@ -24,7 +24,7 @@ export const PALETTE = [
 const ease = Easing.out(Easing.cubic);
 
 // Width that grows from 0 to `pct`% once mounted.
-function GrowBar({ pct, color, delay = 0, style }) {
+export function GrowBar({ pct, color, delay = 0, style }) {
   const p = useSharedValue(0);
   useEffect(() => {
     p.value = withDelay(delay, withTiming(1, { duration: 900, easing: ease }));

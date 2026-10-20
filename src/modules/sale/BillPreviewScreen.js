@@ -288,9 +288,9 @@ const styles = StyleSheet.create({
   storeMeta: { fontSize: 12, color: colors.textMuted, textAlign: 'center', marginTop: 2 },
   metaRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6, gap: spacing.md },
   metaLabel: { color: colors.textMuted, fontSize: 13 },
-  metaValue: { color: colors.paperInk, fontSize: 13, fontWeight: '600', flexShrink: 1, textAlign: 'right' },
+  metaValue: { color: colors.paperInk, fontSize: 13, fontFamily: fonts.bodySemiBold, flexShrink: 1, textAlign: 'right' },
   itemHeader: { flexDirection: 'row', paddingBottom: 6, marginBottom: 4 },
-  itemHead: { flex: 1, fontSize: 12, fontWeight: '700', color: colors.textMuted },
+  itemHead: { flex: 1, fontSize: 12, fontFamily: fonts.bodyBold, color: colors.textMuted },
   itemRow: { flexDirection: 'row', paddingVertical: 6 },
   itemCell: { flex: 1, fontSize: 13, color: colors.paperInk, fontFamily: mono, fontVariant: ['tabular-nums'] },
   itemRight: { textAlign: 'right' },
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     paddingTop: spacing.md,
     marginTop: spacing.sm,
   },
-  grandLabel: { color: colors.paperInk, fontWeight: '800', fontSize: 16 },
+  grandLabel: { color: colors.paperInk, fontFamily: fonts.display, fontSize: 16 },
   grandValue: { color: colors.paperInk, fontFamily: fonts.display, fontSize: 26, letterSpacing: -0.6 },
   thanks: { textAlign: 'center', color: colors.textMuted, fontSize: 13, marginTop: spacing.md },
 
@@ -318,5 +318,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 2,
   },
-  actionText: { fontSize: 11, fontWeight: '600', color: colors.text },
+  actionText: { fontSize: 11, fontFamily: fonts.bodySemiBold, color: colors.text },
 });

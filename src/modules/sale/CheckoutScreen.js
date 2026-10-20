@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   quickActive: { backgroundColor: colors.accent, borderColor: colors.accent },
-  quickText: { color: colors.text, fontSize: 14, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  quickText: { color: colors.text, fontSize: 14, fontFamily: fonts.bodyBold, fontVariant: ['tabular-nums'] },
   quickTextActive: { color: colors.onAccent },
   changeRow: {
     flexDirection: 'row',
@@ -227,6 +227,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  stepNumText: { color: colors.accentStrong, fontSize: 13, fontWeight: '700' },
+  stepNumText: { color: colors.accentStrong, fontSize: 13, fontFamily: fonts.bodyBold },
   stepText: { flex: 1, color: colors.text, fontSize: 14, lineHeight: 20, paddingTop: 3 },
 });

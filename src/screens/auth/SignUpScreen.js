@@ -17,7 +17,7 @@ import { useFeedback } from '../../components/Feedback';
 import PrimaryButton from '../../components/PrimaryButton';
 import AuthHero from './AuthHero';
 import Receipt, { Perforation, ReceiptHeader } from '../../components/Receipt';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
 
@@ -143,5 +143,5 @@ const styles = StyleSheet.create({
   },
   checkboxOn: { backgroundColor: colors.accent, borderColor: colors.accent },
   rememberText: { color: colors.textMuted, fontSize: 13, flex: 1 },
-  link: { color: colors.text, fontWeight: '700' },
+  link: { color: colors.text, fontFamily: fonts.bodyBold },
 });

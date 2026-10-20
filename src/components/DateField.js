@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from './Icon';
 import PressableScale from './PressableScale';
-import { colors, radius, shadows, spacing } from '../theme';
+import { colors, radius, shadows, spacing, fonts } from '../theme';
 import { shortDate } from '../utils/format';
 
 const WEEKDAYS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -167,7 +167,7 @@ export default function DateField({ label, icon = 'calendar-outline', placeholde
 
 const styles = StyleSheet.create({
   container: { marginBottom: spacing.sm },
-  label: { color: colors.textMuted, fontSize: 12, fontWeight: '600', marginBottom: 4, marginLeft: spacing.xs },
+  label: { color: colors.textMuted, fontSize: 12, fontFamily: fonts.bodySemiBold, marginBottom: 4, marginLeft: spacing.xs },
   wrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   },
   wrapperError: { borderColor: colors.danger },
   icon: { marginRight: spacing.sm },
-  value: { flex: 1, fontSize: 15, fontWeight: '500', color: colors.text },
+  value: { flex: 1, fontSize: 15, fontFamily: fonts.bodyMedium, color: colors.text },
   error: { color: colors.dangerStrong, fontSize: 11, marginTop: 4, marginLeft: spacing.sm },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   backdropTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.25)' },
@@ -191,12 +191,12 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     ...shadows.lg,
   },
-  sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
+  sheetTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: colors.text, marginBottom: spacing.md },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.sm },
   monthNav: { padding: spacing.xs, borderRadius: radius.sm },
-  monthLabel: { fontSize: 15, fontWeight: '700', color: colors.text },
+  monthLabel: { fontSize: 15, fontFamily: fonts.bodyBold, color: colors.text },
   weekRow: { flexDirection: 'row', marginBottom: spacing.xs },
-  weekday: { flex: 1, textAlign: 'center', fontSize: 12, fontWeight: '600', color: colors.textMuted },
+  weekday: { flex: 1, textAlign: 'center', fontSize: 12, fontFamily: fonts.bodySemiBold, color: colors.textMuted },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: {
     width: '14.2857%',
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
   cellToday: { borderWidth: 1, borderColor: colors.accentStrong },
   cellSelected: { backgroundColor: colors.accentStrong },
   cellText: { fontSize: 14, color: colors.text },
-  cellTextSelected: { color: '#fff', fontWeight: '700' },
+  cellTextSelected: { color: '#fff', fontFamily: fonts.bodyBold },
   monthGrid: { flexDirection: 'row', flexWrap: 'wrap', marginTop: spacing.xs },
   monthCell: {
     width: '33.3333%',
@@ -219,5 +219,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     marginBottom: spacing.xs,
   },
-  monthCellText: { fontSize: 14, fontWeight: '600', color: colors.text },
+  monthCellText: { fontSize: 14, fontFamily: fonts.bodySemiBold, color: colors.text },
 });

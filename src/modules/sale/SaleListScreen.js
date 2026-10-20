@@ -12,7 +12,7 @@ import SummaryTiles from '../../components/SummaryTiles';
 import SegmentedControl from '../../components/SegmentedControl';
 import SharedBadge from '../../components/SharedBadge';
 import EmptyState from '../../components/EmptyState';
-import { colors, radius, shadows, spacing } from '../../theme';
+import { colors, radius, shadows, spacing, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { plural, rupees, shortDate } from '../../utils/format';
 import { getSales } from './services';
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   inlineErrorText: { flex: 1, color: colors.text, fontSize: 12, lineHeight: 17 },
-  retryText: { color: colors.accentStrong, fontSize: 13, fontWeight: '700' },
+  retryText: { color: colors.accentStrong, fontSize: 13, fontFamily: fonts.bodyBold },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -236,10 +236,10 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   cardBody: { flex: 1, minWidth: 0, marginLeft: spacing.md, marginRight: spacing.sm },
-  customer: { fontSize: 15, fontWeight: '600', color: colors.text },
+  customer: { fontSize: 15, fontFamily: fonts.bodySemiBold, color: colors.text },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   meta: { flexShrink: 1, fontSize: 12, color: colors.textMuted },
   cardEnd: { alignItems: 'flex-end' },
-  amount: { fontSize: 15, fontWeight: '700', color: colors.text, fontVariant: ['tabular-nums'] },
+  amount: { fontSize: 15, fontFamily: fonts.bodyBold, color: colors.text, fontVariant: ['tabular-nums'] },
   date: { fontSize: 12, color: colors.textMuted, marginTop: 3 },
 });

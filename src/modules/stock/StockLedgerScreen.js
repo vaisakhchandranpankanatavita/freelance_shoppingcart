@@ -8,7 +8,7 @@ import Screen from '../../components/Screen';
 import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
 import SelectField from '../../components/SelectField';
 import EmptyState from '../../components/EmptyState';
-import { colors, spacing, radius, shadows } from '../../theme';
+import { colors, spacing, radius, shadows, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { getBranches } from '../../api';
 import { toOptions } from '../manage/entities';
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   iconWrap: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  name: { fontSize: 15, fontWeight: '600', color: colors.text },
+  name: { fontSize: 15, fontFamily: fonts.bodySemiBold, color: colors.text },
   sub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  qty: { fontSize: 15, fontWeight: '700' },
+  qty: { fontSize: 15, fontFamily: fonts.bodyBold },
 });

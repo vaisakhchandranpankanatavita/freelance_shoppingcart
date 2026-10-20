@@ -12,7 +12,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
-import { colors, shadows, spacing } from '../theme';
+import { colors, shadows, spacing, fonts } from '../theme';
 import { useTabBarClearance } from './TabBar';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -139,5 +139,5 @@ const styles = StyleSheet.create({
   },
   floating: { position: 'absolute', right: spacing.lg },
   fill: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  label: { color: colors.onAccent, fontSize: 13, fontWeight: '700', letterSpacing: 0.1 },
+  label: { color: colors.onAccent, fontSize: 13, fontFamily: fonts.bodyBold, letterSpacing: 0.1 },
 });

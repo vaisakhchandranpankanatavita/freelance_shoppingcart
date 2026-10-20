@@ -10,7 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Defs, Line, LinearGradient, Path, Stop } from 'react-native-svg';
 import useTween from '../hooks/useTween';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 import { spring } from '../theme/motion';
 
 const AXIS = 30;
@@ -177,7 +177,7 @@ export default function LineChart({
 
 const styles = StyleSheet.create({
   axis: { width: AXIS },
-  axisText: { color: colors.inkMuted, fontSize: 11, fontWeight: '600', opacity: 0.7 },
+  axisText: { color: colors.inkMuted, fontSize: 11, fontFamily: fonts.bodySemiBold, opacity: 0.7 },
   yLabel: { position: 'absolute', left: 0, lineHeight: 14 },
   reveal: { position: 'absolute', left: 0, top: 0, overflow: 'hidden' },
   xAxis: { flexDirection: 'row', marginTop: 16 },
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bubbleText: { color: colors.onAccent, fontSize: 12, fontWeight: '800' },
+  bubbleText: { color: colors.onAccent, fontSize: 12, fontFamily: fonts.display },
   caret: {
     width: 0,
     height: 0,

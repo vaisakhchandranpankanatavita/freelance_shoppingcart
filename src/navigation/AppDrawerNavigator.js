@@ -102,8 +102,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarText: { color: colors.bg, fontSize: 18, fontWeight: '700' },
-  userName: { fontSize: 15, fontWeight: '700', color: colors.text },
+  avatarText: { color: colors.bg, fontSize: 18, fontFamily: fonts.bodyBold },
+  userName: { fontSize: 15, fontFamily: fonts.bodyBold, color: colors.text },
   userRole: { fontSize: 11, color: colors.textMuted, marginTop: 2 },
   menuItem: {
     flexDirection: 'row',
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.sm,
   },
-  menuLabel: { marginLeft: spacing.md, fontSize: 14, color: colors.text, fontWeight: '500' },
+  menuLabel: { marginLeft: spacing.md, fontSize: 14, color: colors.text, fontFamily: fonts.bodyMedium },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -120,5 +120,5 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.line,
   },
-  logoutText: { marginLeft: spacing.sm, color: colors.dangerStrong, fontWeight: '600' },
+  logoutText: { marginLeft: spacing.sm, color: colors.dangerStrong, fontFamily: fonts.bodySemiBold },
 });

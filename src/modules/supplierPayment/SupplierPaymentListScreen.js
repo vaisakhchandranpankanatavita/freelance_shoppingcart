@@ -11,7 +11,7 @@ import PressableScale from '../../components/PressableScale';
 import SummaryTiles from '../../components/SummaryTiles';
 import SelectField from '../../components/SelectField';
 import EmptyState from '../../components/EmptyState';
-import { colors, spacing, radius, shadows } from '../../theme';
+import { colors, spacing, radius, shadows, fonts } from '../../theme';
 import { rupees, shortDate } from '../../utils/format';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   iconWrap: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.chip, alignItems: 'center', justifyContent: 'center' },
-  name: { fontSize: 15, fontWeight: '600', color: colors.text },
+  name: { fontSize: 15, fontFamily: fonts.bodySemiBold, color: colors.text },
   sub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  amount: { fontSize: 15, fontWeight: '700', color: colors.text },
+  amount: { fontSize: 15, fontFamily: fonts.bodyBold, color: colors.text },
 });

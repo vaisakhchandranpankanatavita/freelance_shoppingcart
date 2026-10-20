@@ -4,26 +4,22 @@ import { Platform, StyleSheet, Text, TextInput, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
-  Outfit_500Medium,
-  Outfit_600SemiBold,
-  Outfit_700Bold,
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
   useFonts,
-} from '@expo-google-fonts/outfit';
-import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from '@expo-google-fonts/inter';
+} from '@expo-google-fonts/manrope';
 import { AuthProvider } from './src/context/AuthContext';
 import { FeedbackProvider } from './src/components/Feedback';
 import RootNavigator from './src/navigation/RootNavigator';
 import { colors, fonts } from './src/theme';
 
 // App-wide default: any <Text>/<TextInput> that doesn't set its own `fontFamily` (most inline
-// screen styles never did — they rode the OS system font) now renders in Inter instead.
+// screen styles never did — they rode the OS system font) now renders in Manrope instead.
 // Components that explicitly set a `fontFamily` (every headline via `typography.display`/`h2`,
-// which carry Outfit) are unaffected — the explicit style wins over this default.
+// which carry Manrope) are unaffected — the explicit style wins over this default.
 const defaultTextStyle = { fontFamily: fonts.body };
 Text.defaultProps = Text.defaultProps || {};
 Text.defaultProps.style = [defaultTextStyle, Text.defaultProps.style];
@@ -32,13 +28,14 @@ TextInput.defaultProps.style = [defaultTextStyle, TextInput.defaultProps.style];
 
 export default function App() {
   const [loaded, fontError] = useFonts({
-    [fonts.display]: Outfit_700Bold,
-    [fonts.displaySemiBold]: Outfit_600SemiBold,
-    [fonts.displayMedium]: Outfit_500Medium,
-    [fonts.body]: Inter_400Regular,
-    [fonts.bodyMedium]: Inter_500Medium,
-    [fonts.bodySemiBold]: Inter_600SemiBold,
-    [fonts.bodyBold]: Inter_700Bold,
+    [fonts.display]: Manrope_800ExtraBold,
+    [fonts.displayBold]: Manrope_700Bold,
+    [fonts.displaySemiBold]: Manrope_600SemiBold,
+    [fonts.displayMedium]: Manrope_500Medium,
+    [fonts.body]: Manrope_400Regular,
+    [fonts.bodyMedium]: Manrope_500Medium,
+    [fonts.bodySemiBold]: Manrope_600SemiBold,
+    [fonts.bodyBold]: Manrope_700Bold,
   });
 
   return (

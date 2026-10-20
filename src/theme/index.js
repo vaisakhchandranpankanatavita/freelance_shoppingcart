@@ -207,25 +207,24 @@ export const shadows = {
   },
 };
 
-// Outfit (geometric sans) carries headlines and section headers; Inter — also loaded in
-// App.js — is the app-wide running-text face (body copy, labels, buttons, inputs) and is also
-// the default for any <Text>/<TextInput> that sets no fontFamily of its own (see App.js), so
-// the whole app reads as one typeface pairing instead of falling back to the OS system font.
-// Inter's tall x-height keeps dense data, numbers, and system labels legible at small sizes.
+// Manrope carries the whole app: heavier weights (700/800) for headlines and big figures,
+// lighter ones (400-600) for running text, labels, buttons and inputs. It is also the default
+// for any <Text>/<TextInput> that sets no fontFamily of its own (see App.js). Its even,
+// modern numerals keep prices, totals and quantities aligned and legible at small sizes.
 export const fonts = {
-  display: 'Outfit_700Bold',
-  displayBold: 'Outfit_700Bold',
-  displaySemiBold: 'Outfit_600SemiBold',
-  displayMedium: 'Outfit_500Medium',
-  body: 'Inter_400Regular',
-  bodyMedium: 'Inter_500Medium',
-  bodySemiBold: 'Inter_600SemiBold',
-  bodyBold: 'Inter_700Bold',
+  display: 'Manrope_800ExtraBold',
+  displayBold: 'Manrope_700Bold',
+  displaySemiBold: 'Manrope_600SemiBold',
+  displayMedium: 'Manrope_500Medium',
+  body: 'Manrope_400Regular',
+  bodyMedium: 'Manrope_500Medium',
+  bodySemiBold: 'Manrope_600SemiBold',
+  bodyBold: 'Manrope_700Bold',
 };
 
-// Mobile hierarchy: main headers 24-28 (Outfit Bold/SemiBold), section headers 18-20
-// (Outfit Medium), body/inputs 15-16 (Inter Regular), captions/micro-copy/graph labels 12-13
-// (Inter Medium/Regular).
+// Mobile hierarchy: main headers 24-28 (Manrope Bold/ExtraBold), section headers 18-20
+// (Manrope SemiBold), body/inputs 15-16 (Manrope Regular), captions/micro-copy/graph labels 12-13
+// (Manrope Medium/Regular).
 export const typography = {
   display: { fontSize: 40, lineHeight: 44, fontFamily: fonts.display, letterSpacing: -1.2 },
   title: { fontSize: 28, lineHeight: 34, fontFamily: fonts.display, letterSpacing: -0.6 },

@@ -25,7 +25,7 @@ export default function PinCells({ value, onChangeText, length = 4, label = 'Log
           const digit = value[i];
           const current = focused && i === active;
           return (
-            <View key={i} style={[styles.cell, cellW && { width: cellW, flex: 0 }, digit && styles.filled, current && styles.current, error && styles.error]}>
+            <View key={i} style={[styles.cell, cellW && { width: cellW, flexGrow: 0, flexShrink: 0, flexBasis: cellW }, digit && styles.filled, current && styles.current, error && styles.error]}>
               {digit ? (
                 <Animated.Text key={digit + i} entering={FadeIn.duration(120)} style={styles.digit}>
                   {digit}
@@ -59,7 +59,7 @@ const styles = StyleSheet.create({
   // Explicit full width: the receipt paper was shrink-wrapping this block (~2/3 of the row),
   // leaving the cells hugging the left with a gap on the right.
   root: { width: '100%' },
-  label: { color: colors.textMuted, fontSize: 13, fontWeight: '600', marginBottom: 10 },
+  label: { color: colors.textMuted, fontSize: 13, fontFamily: fonts.bodySemiBold, marginBottom: 10 },
   row: { flexDirection: 'row', gap: GAP, width: '100%' },
   cell: {
     flex: 1,

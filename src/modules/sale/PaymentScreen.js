@@ -9,7 +9,7 @@ import InputField from '../../components/InputField';
 import PrimaryButton from '../../components/PrimaryButton';
 import Heading from '../../components/Heading';
 import BottomBar from '../../components/BottomBar';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 import { rupees, rupeesExact } from '../../utils/format';
 
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: 150 },
   rowBetween: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
   rowLabel: { color: colors.textMuted, fontSize: 14 },
-  rowValue: { color: colors.text, fontSize: 14, fontWeight: '600' },
+  rowValue: { color: colors.text, fontSize: 14, fontFamily: fonts.bodySemiBold },
   itemRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -150,9 +150,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  itemName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  itemName: { fontSize: 14, fontFamily: fonts.bodySemiBold, color: colors.text },
   itemMeta: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  itemTotal: { fontSize: 14, fontWeight: '700', color: colors.text },
+  itemTotal: { fontSize: 14, fontFamily: fonts.bodyBold, color: colors.text },
   mutedText: { color: colors.textMuted, fontSize: 13 },
   divider: { height: 1, backgroundColor: colors.inkLine, marginVertical: spacing.md },
   grandLabel: { color: colors.inkMuted, fontSize: 14 },

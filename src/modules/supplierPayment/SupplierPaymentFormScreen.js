@@ -11,7 +11,7 @@ import PressableScale from '../../components/PressableScale';
 import SegmentedControl from '../../components/SegmentedControl';
 import EmptyState from '../../components/EmptyState';
 import { useFeedback } from '../../components/Feedback';
-import { colors, spacing, radius } from '../../theme';
+import { colors, spacing, radius, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 import { getSuppliers } from '../../api';
 import { toOptions } from '../manage/entities';
@@ -200,7 +200,7 @@ export default function SupplierPaymentFormScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: spacing.xxl },
-  sectionTitle: { fontSize: 13, fontWeight: '600', color: colors.textMuted, marginBottom: spacing.sm, marginLeft: spacing.sm },
+  sectionTitle: { fontSize: 13, fontFamily: fonts.bodySemiBold, color: colors.textMuted, marginBottom: spacing.sm, marginLeft: spacing.sm },
   delete: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, marginTop: spacing.xl, height: 52, borderRadius: radius.pill, backgroundColor: colors.elevated2 },
-  deleteText: { color: colors.dangerStrong, fontWeight: '700', fontSize: 15 },
+  deleteText: { color: colors.dangerStrong, fontFamily: fonts.bodyBold, fontSize: 15 },
 });

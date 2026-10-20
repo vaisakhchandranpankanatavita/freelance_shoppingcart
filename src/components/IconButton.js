@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Icon from './Icon';
 import PressableScale from './PressableScale';
 import GradientBorder from './GradientBorder';
-import { colors, shadows } from '../theme';
+import { colors, shadows, fonts } from '../theme';
 
 const VARIANTS = {
   dark: { bg: colors.elevated2, fg: colors.text },
@@ -54,5 +54,5 @@ const styles = StyleSheet.create({
   btn: { alignItems: 'center', justifyContent: 'center', ...shadows.sm },
   badgeWrap: { position: 'absolute', top: -4, left: -6 },
   badge: { minWidth: 20, height: 20, paddingHorizontal: 4, alignItems: 'center', justifyContent: 'center' },
-  badgeText: { color: colors.text, fontSize: 10, fontWeight: '800' },
+  badgeText: { color: colors.text, fontSize: 10, fontFamily: fonts.display },
 });

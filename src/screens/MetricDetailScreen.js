@@ -14,7 +14,7 @@ import Screen from '../components/Screen';
 import ScreenHeader, { HEADER_HEIGHT } from '../components/ScreenHeader';
 import Gauge from '../components/Gauge';
 import SegmentedControl from '../components/SegmentedControl';
-import { colors, shadows, spacing, tones } from '../theme';
+import { colors, shadows, spacing, tones, fonts } from '../theme';
 import { enter } from '../theme/motion';
 import { branches, metricDetail, metrics, periods } from '../data/dashboardData';
 
@@ -128,7 +128,7 @@ function Dot({ index, x, item }) {
 
 const styles = StyleSheet.create({
   body: { flex: 1, paddingTop: HEADER_HEIGHT + spacing.lg },
-  pagerTitle: { color: colors.text, fontSize: 22, fontWeight: '700', letterSpacing: -0.4, textAlign: 'center' },
+  pagerTitle: { color: colors.text, fontSize: 22, fontFamily: fonts.bodyBold, letterSpacing: -0.4, textAlign: 'center' },
   dots: { flexDirection: 'row', justifyContent: 'center', gap: spacing.sm, marginTop: spacing.md },
   dot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accentStrong },
   gauge: { flex: 1, alignItems: 'center', justifyContent: 'center' },

@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     letterSpacing: -2,
     includeFontPadding: false,
   },
-  tagline: { marginTop: 4, color: colors.inkMuted, fontSize: 15, fontWeight: '500', letterSpacing: 0.2 },
+  tagline: { marginTop: 4, color: colors.inkMuted, fontSize: 15, fontFamily: fonts.bodyMedium, letterSpacing: 0.2 },
   scene: { alignSelf: 'stretch', marginTop: 32 },
 
   progressTrack: {

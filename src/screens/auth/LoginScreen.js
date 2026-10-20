@@ -24,7 +24,7 @@ import SegmentedControl from '../../components/SegmentedControl';
 import AuthHero from './AuthHero';
 import PinCells from './PinCells';
 import Receipt, { Barcode, Perforation, ReceiptHeader, mono } from '../../components/Receipt';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fonts } from '../../theme';
 import { fadeIn, fadeOut } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
 
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   clearOff: { opacity: 0.4 },
-  clearText: { color: colors.textMuted, fontSize: 14, fontWeight: '600' },
+  clearText: { color: colors.textMuted, fontSize: 14, fontFamily: fonts.bodySemiBold },
   rememberRow: {
     flexDirection: 'row',
     alignItems: 'center',

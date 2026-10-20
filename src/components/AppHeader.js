@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.chip,
   },
   menuHeadingCopy: { flex: 1 },
-  menuTitle: { color: colors.text, fontSize: 18, fontWeight: '700', letterSpacing: -0.2 },
+  menuTitle: { color: colors.text, fontSize: 18, fontFamily: fonts.bodyBold, letterSpacing: -0.2 },
   menuSubtitle: { color: colors.textMuted, fontSize: 13, marginTop: spacing.xs },
   menuClose: {
     width: 44,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.chip,
   },
   menuActionCopy: { flex: 1 },
-  menuActionTitle: { color: colors.text, fontSize: 16, fontWeight: '700' },
+  menuActionTitle: { color: colors.text, fontSize: 16, fontFamily: fonts.bodyBold },
   menuActionSubtitle: { color: colors.textMuted, fontSize: 12, marginTop: spacing.xs },
   menuLogout: {
     marginTop: spacing.xs,

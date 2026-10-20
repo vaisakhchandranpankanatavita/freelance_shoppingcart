@@ -4,7 +4,7 @@ import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon from './Icon';
 import PressableScale from './PressableScale';
-import { colors, radius, shadows, spacing } from '../theme';
+import { colors, radius, shadows, spacing, fonts } from '../theme';
 
 // Pill-shaped picker that matches InputField: tap to choose from `options`
 // ([{ value, label }]) in a bottom sheet. `disabled` greys it out (e.g. a state
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   label: {
     color: colors.textMuted,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     marginBottom: 4,
     marginLeft: spacing.xs,
   },
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   },
   wrapperError: { borderColor: colors.danger },
   icon: { marginRight: spacing.sm },
-  value: { flex: 1, fontSize: 15, fontWeight: '500', color: colors.text },
+  value: { flex: 1, fontSize: 15, fontFamily: fonts.bodyMedium, color: colors.text },
   error: { color: colors.dangerStrong, fontSize: 11, marginTop: 4, marginLeft: spacing.sm },
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   backdropTint: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.25)' },
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     ...shadows.lg,
   },
-  sheetTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: spacing.sm },
+  sheetTitle: { fontSize: 17, fontFamily: fonts.bodyBold, color: colors.text, marginBottom: spacing.sm },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -125,6 +125,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.line,
   },
   optionText: { fontSize: 15, color: colors.text },
-  optionOn: { fontWeight: '700', color: colors.accentStrong },
+  optionOn: { fontFamily: fonts.bodyBold, color: colors.accentStrong },
   empty: { color: colors.textMuted, paddingVertical: spacing.lg, textAlign: 'center' },
 });

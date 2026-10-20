@@ -11,7 +11,7 @@ import PressableScale from '../../components/PressableScale';
 import SummaryTiles from '../../components/SummaryTiles';
 import SegmentedControl from '../../components/SegmentedControl';
 import EmptyState from '../../components/EmptyState';
-import { colors, spacing, radius, shadows } from '../../theme';
+import { colors, spacing, radius, shadows, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
 import { BACKEND_READY, getRequests } from './services';
@@ -175,11 +175,11 @@ const styles = StyleSheet.create({
     ...shadows.sm,
   },
   cardHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.xs },
-  poId: { fontSize: 13, color: colors.textMuted, fontWeight: '600', flexShrink: 1, marginRight: spacing.sm },
+  poId: { fontSize: 13, color: colors.textMuted, fontFamily: fonts.bodySemiBold, flexShrink: 1, marginRight: spacing.sm },
   statusPill: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 10, paddingVertical: 4, borderRadius: radius.pill },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 12, fontWeight: '700' },
-  supplier: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3, color: colors.text, marginBottom: spacing.md },
+  statusText: { fontSize: 12, fontFamily: fonts.bodyBold },
+  supplier: { fontSize: 18, fontFamily: fonts.bodyBold, letterSpacing: -0.3, color: colors.text, marginBottom: spacing.md },
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.lg },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   metaText: { fontSize: 12, color: colors.textMuted },

@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     backgroundColor: `${colors.warning}1F`,
     marginBottom: spacing.md,
   },
-  lockedBadgeText: { fontSize: 11, fontWeight: '700', color: colors.warningStrong, letterSpacing: 0.2 },
+  lockedBadgeText: { fontSize: 11, fontFamily: fonts.bodyBold, color: colors.warningStrong, letterSpacing: 0.2 },
   title: {
     marginTop: spacing.lg,
     color: colors.text,
@@ -82,5 +82,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...shadows.sm,
   },
-  actionText: { color: colors.onAccent, fontSize: 15, fontWeight: '700' },
+  actionText: { color: colors.onAccent, fontSize: 15, fontFamily: fonts.bodyBold },
 });

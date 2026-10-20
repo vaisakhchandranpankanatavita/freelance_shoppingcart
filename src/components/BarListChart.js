@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
-import { colors, radius, spacing } from '../theme';
+import { colors, radius, spacing, fonts } from '../theme';
 
 // Horizontal bar list for comparing report rows by value (sale amount, stock worth, quantity, …).
 // Report rows are categorical (one per product/category/branch/bill), not a time series, so each
@@ -44,10 +44,10 @@ const styles = StyleSheet.create({
   list: { gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   labelCol: { width: 104 },
-  label: { fontSize: 12, fontWeight: '700', color: colors.text },
+  label: { fontSize: 12, fontFamily: fonts.bodyBold, color: colors.text },
   sublabel: { fontSize: 11, color: colors.textMuted, marginTop: 1 },
   barCol: { flex: 1 },
   track: { height: 14, borderRadius: radius.sm, backgroundColor: colors.chip, overflow: 'hidden' },
   bar: { height: '100%', borderRadius: radius.sm, backgroundColor: colors.accentStrong },
-  value: { marginTop: 3, fontSize: 11, fontWeight: '700', color: colors.textMuted, textAlign: 'right' },
+  value: { marginTop: 3, fontSize: 11, fontFamily: fonts.bodyBold, color: colors.textMuted, textAlign: 'right' },
 });

@@ -12,7 +12,7 @@ import AddButton from '../../components/AddButton';
 import PressableScale from '../../components/PressableScale';
 import EmptyState from '../../components/EmptyState';
 import { useFeedback } from '../../components/Feedback';
-import { colors, radius, shadows, spacing } from '../../theme';
+import { colors, radius, shadows, spacing, fonts } from '../../theme';
 import { enter, fadeOut, layout } from '../../theme/motion';
 import { useAuth } from '../../context/AuthContext';
 import { ENTITIES, isActive, listOf, nameOf } from './entities';
@@ -226,6 +226,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: { flex: 1, marginLeft: spacing.md },
-  name: { fontSize: 15, fontWeight: '600', color: colors.text },
+  name: { fontSize: 15, fontFamily: fonts.bodySemiBold, color: colors.text },
   sub: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
 });

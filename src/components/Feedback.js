@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
   },
   toastIcon: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   toastText: { flex: 1 },
-  toastTitle: { color: colors.ink, fontSize: 15, fontWeight: '700' },
+  toastTitle: { color: colors.ink, fontSize: 15, fontFamily: fonts.bodyBold },
   toastMessage: { color: colors.inkMuted, fontSize: 13, marginTop: 2, lineHeight: 18 },
 
   scrim: {
@@ -165,8 +165,8 @@ const styles = StyleSheet.create({
   dialogCancel: { backgroundColor: colors.elevated2 },
   dialogPrimary: { backgroundColor: colors.accent },
   dialogDanger: { backgroundColor: colors.danger },
-  dialogCancelText: { color: colors.text, fontSize: 15, fontWeight: '600' },
-  dialogConfirmText: { fontSize: 15, fontWeight: '700' },
+  dialogCancelText: { color: colors.text, fontSize: 15, fontFamily: fonts.bodySemiBold },
+  dialogConfirmText: { fontSize: 15, fontFamily: fonts.bodyBold },
   dialogPrimaryText: { color: colors.onAccent },
   dialogDangerText: { color: colors.onAccent },
 });

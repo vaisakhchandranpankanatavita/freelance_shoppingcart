@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
 import Icon from './Icon';
-import { colors } from '../theme';
+import { colors, fonts } from '../theme';
 import { spring } from '../theme/motion';
 
 // Borderless tabs with a cyan outlined thumb that springs between options.
@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   itemCompact: { height: 30 },
-  text: { fontSize: 14, fontWeight: '600', letterSpacing: -0.1, flexShrink: 1, minWidth: 0 },
+  text: { fontSize: 14, fontFamily: fonts.bodySemiBold, letterSpacing: -0.1, flexShrink: 1, minWidth: 0 },
   textCompact: { fontSize: 13 },
 });

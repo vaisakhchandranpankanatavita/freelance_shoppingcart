@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     textTransform: 'uppercase',
     letterSpacing: -0.3,
     color: colors.text,

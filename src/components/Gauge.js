@@ -116,9 +116,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.inkMuted,
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
   },
   center: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
   value: { fontSize: 64, fontFamily: fonts.display, letterSpacing: -2, fontVariant: ['tabular-nums'] },
-  unit: { fontSize: 11, fontWeight: '800', letterSpacing: 1, marginTop: -4 },
+  unit: { fontSize: 11, fontFamily: fonts.display, letterSpacing: 1, marginTop: -4 },
 });

@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: radius.pill,
   },
-  roleText: { fontSize: 12, fontWeight: '600', color: colors.ink },
+  roleText: { fontSize: 12, fontFamily: fonts.bodySemiBold, color: colors.ink },
 
   sectionTitle: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.textMuted,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
@@ -222,10 +222,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  rowLabel: { flex: 1, fontSize: 15, color: colors.text, fontWeight: '500' },
+  rowLabel: { flex: 1, fontSize: 15, color: colors.text, fontFamily: fonts.bodyMedium },
   rowLabelMuted: { color: colors.textMuted },
   rowIconMuted: { backgroundColor: 'transparent' },
-  soon: { fontSize: 12, color: colors.textMuted, fontWeight: '600' },
+  soon: { fontSize: 12, color: colors.textMuted, fontFamily: fonts.bodySemiBold },
 
   logoutBtn: {
     flexDirection: 'row',
@@ -235,6 +235,6 @@ const styles = StyleSheet.create({
     height: 48,
   },
   logoutCard: { marginTop: spacing.md, borderRadius: radius.pill },
-  logoutText: { color: colors.dangerStrong, fontWeight: '700', fontSize: 15 },
+  logoutText: { color: colors.dangerStrong, fontFamily: fonts.bodyBold, fontSize: 15 },
   version: { textAlign: 'center', color: colors.textFaint, fontSize: 12, marginTop: spacing.lg },
 });

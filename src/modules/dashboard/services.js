@@ -72,6 +72,9 @@ export const getDashboard = async () => {
   if (summary && summary.total_bills != null) {
     metrics.push({ key: 'bills', title: 'Bills', subtitle: 'Total bills raised', value: Number(summary.total_bills) || 0, unit: 'BILLS', icon: 'receipt-outline', tone: 'cyan', to: ['Sale'] });
   }
+  if (summary && summary.total_customers != null) {
+    metrics.push({ key: 'customers', title: 'Customers', subtitle: 'Total customers', value: Number(summary.total_customers) || 0, unit: 'PEOPLE', icon: 'people-outline', tone: 'cyan', to: ['Sale'] });
+  }
   if (branches.status === 'fulfilled') {
     const list = listOf(branches.value);
     metrics.push({ key: 'branches', title: 'Branches', subtitle: `${list.length} in total`, value: list.filter(isActive).length, unit: 'ACTIVE', icon: 'business-outline', tone: 'violet', to: ['More', { screen: 'EntityList', params: { entity: 'branch' } }] });
@@ -83,5 +86,14 @@ export const getDashboard = async () => {
     metrics.push({ key: 'categories', title: 'Categories', subtitle: 'Aisles and groups', value: listOf(categories.value).length, unit: 'GROUPS', icon: 'albums-outline', tone: 'slate', to: ['More', { screen: 'EntityList', params: { entity: 'category' } }] });
   }
 
-  return { metrics, lowStock, topStocked, insights };
+  const a = analytics.status === 'fulfilled' ? analytics.value : null;
+  // Chart series straight from the dashboard payload; each is null/empty when the API omits it.
+  const trends = {
+    revenue: Array.isArray(a?.sales?.revenue) ? a.sales.revenue : [],
+    peakHours: Array.isArray(a?.sales?.peak_hours) ? a.sales.peak_hours : [],
+    monthly: a?.bills?.monthly?.months ? a.bills.monthly : null,
+    categorySales: Array.isArray(a?.sales?.category_sales) ? a.sales.category_sales : [],
+  };
+
+  return { metrics, lowStock, topStocked, insights, trends };
 };

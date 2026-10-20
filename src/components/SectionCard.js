@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from './Icon';
-import { colors, radius, shadows, spacing } from '../theme';
+import { colors, radius, shadows, spacing, fonts } from '../theme';
 import { enter } from '../theme/motion';
 
 // tone 'light' = plain white card (optionally with a soft grey fade),
@@ -71,5 +71,5 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   icon: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  title: { flex: 1, fontSize: 17, fontWeight: '700', letterSpacing: -0.3 },
+  title: { flex: 1, fontSize: 17, fontFamily: fonts.bodyBold, letterSpacing: -0.3 },
 });

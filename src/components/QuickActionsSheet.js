@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.14)',
   },
   featuredCopy: { flex: 1 },
-  featuredLabel: { color: colors.onAccent, fontSize: 15, fontWeight: '700' },
+  featuredLabel: { color: colors.onAccent, fontSize: 15, fontFamily: fonts.bodyBold },
   featuredDetail: { color: 'rgba(255,255,255,0.76)', fontSize: 11, marginTop: 2 },
   featuredArrow: {
     width: 30,
@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: colors.textMuted,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: fonts.bodyBold,
     letterSpacing: 0.35,
     marginBottom: spacing.xs,
   },
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  actionLabel: { flex: 1, color: colors.text, fontSize: 12, fontWeight: '600' },
+  actionLabel: { flex: 1, color: colors.text, fontSize: 12, fontFamily: fonts.bodySemiBold },
   manageTitle: { marginTop: spacing.sm },
   manageGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   manageItem: {
@@ -367,5 +367,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  manageLabel: { flex: 1, color: colors.text, fontSize: 11, fontWeight: '600' },
+  manageLabel: { flex: 1, color: colors.text, fontSize: 11, fontFamily: fonts.bodySemiBold },
 });

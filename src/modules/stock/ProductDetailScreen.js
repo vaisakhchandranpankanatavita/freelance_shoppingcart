@@ -22,7 +22,9 @@ import {
 } from '../../api';
 import { listOf, toOptions } from '../manage/entities';
 import { toItem } from './mappers';
-import { colors, radius, spacing } from '../../theme';
+import SectionCard from '../../components/SectionCard';
+import { rupees } from '../../utils/format';
+import { colors, radius, shadows, spacing, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 
 const str = (v) => (v == null ? '' : String(v));
@@ -184,7 +186,22 @@ export default function ProductDetailScreen({ navigation, route }) {
                 <Text style={styles.readOnlyText}>View only • Admin access required to edit product</Text>
               </View>
             ) : null}
-            <Animated.View entering={enter(0)}>
+            <Animated.View entering={enter(0)} style={styles.hero}>
+              <Text style={styles.heroName} numberOfLines={2}>{form.name || 'Untitled item'}</Text>
+              <View style={styles.heroStats}>
+                <View style={styles.heroStat}>
+                  <Text style={styles.heroValue}>{Number(form.price) > 0 ? rupees(Number(form.price)) : '—'}</Text>
+                  <Text style={styles.heroLabel}>Selling price</Text>
+                </View>
+                <View style={styles.heroDivider} />
+                <View style={styles.heroStat}>
+                  <Text style={styles.heroValue}>{form.lowAt || '5'}</Text>
+                  <Text style={styles.heroLabel}>Low stock alert</Text>
+                </View>
+              </View>
+            </Animated.View>
+
+            <SectionCard title="Item details" icon="pricetag-outline" index={1}>
               <InputField label="Item name" icon="pricetag-outline" value={form.name} error={errors.name} autoCapitalize="words" onChangeText={(v) => canUpdate && set('name', v)} editable={canUpdate} />
               <View style={styles.pair}>
                 <InputField style={styles.cell} label="Price (₹)" icon="cash-outline" value={form.price} error={errors.price} keyboardType="numeric" onChangeText={(v) => canUpdate && set('price', v)} editable={canUpdate} />
@@ -193,10 +210,10 @@ export default function ProductDetailScreen({ navigation, route }) {
               {canUpdate ? (
                 <PrimaryButton title="Save changes" icon="checkmark" variant="light" onPress={onSave} loading={saving} />
               ) : null}
-            </Animated.View>
+            </SectionCard>
 
-            <Animated.View entering={enter(1)} style={styles.section}>
-              <Text style={styles.sectionTitle}>Stock by branch</Text>
+            <SectionCard title="Stock by branch" icon="business-outline" index={2} style={styles.section}>
+              <Text style={styles.hint}>Pick a branch to view and adjust its quantity.</Text>
               <SelectField label="Branch" icon="business-outline" placeholder="Choose a branch" value={branchId} options={branches} onChange={pickBranch} />
               {stockLoading ? <ActivityIndicator color={colors.text} style={{ marginVertical: spacing.md }} /> : null}
               {stock.map((r) => (
@@ -213,12 +230,12 @@ export default function ProductDetailScreen({ navigation, route }) {
               {stock.length && canUpdate ? (
                 <PrimaryButton title="Update stock" icon="checkmark" variant="light" onPress={onStockSave} loading={stockSaving} />
               ) : null}
-            </Animated.View>
+            </SectionCard>
 
             {canDelete ? (
-              <Animated.View entering={enter(2)}>
+              <Animated.View entering={enter(3)}>
                 <PressableScale style={styles.delete} onPress={onDelete} accessibilityLabel="Delete item">
-                  <Icon name="trash-outline" size={18} color={colors.danger} />
+                  <Icon name="trash-outline" size={18} color={colors.dangerStrong} />
                   <Text style={styles.deleteText}>Delete item</Text>
                 </PressableScale>
               </Animated.View>
@@ -235,19 +252,43 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.md, paddingBottom: spacing.xxl },
   pair: { flexDirection: 'row', gap: spacing.md },
   cell: { flex: 1 },
-  section: { marginTop: spacing.xl },
-  sectionTitle: { fontSize: 17, fontWeight: '700', color: colors.text, marginBottom: spacing.md },
+  section: { marginTop: spacing.md },
+  hint: { fontSize: 13, color: colors.textMuted, marginBottom: spacing.md, lineHeight: 18 },
+  hero: {
+    backgroundColor: colors.elevated,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    ...shadows.sm,
+  },
+  heroName: { fontSize: 24, lineHeight: 30, fontFamily: fonts.display, letterSpacing: -0.6, color: colors.text },
+  heroStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.lg,
+    paddingTop: spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  heroStat: { flex: 1 },
+  heroDivider: { width: 1, alignSelf: 'stretch', backgroundColor: colors.line, marginHorizontal: spacing.lg },
+  heroValue: { fontSize: 20, fontFamily: fonts.display, letterSpacing: -0.4, color: colors.text },
+  heroLabel: { fontSize: 12, fontFamily: fonts.bodyMedium, color: colors.textMuted, marginTop: 2 },
   delete: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing.sm,
-    marginTop: spacing.xl,
-    height: 52,
+    marginTop: spacing.lg,
+    height: 50,
     borderRadius: radius.pill,
-    backgroundColor: colors.elevated2,
+    borderWidth: 1,
+    borderColor: `${colors.danger}55`,
+    backgroundColor: `${colors.danger}0F`,
   },
-  deleteText: { color: colors.dangerStrong, fontWeight: '700', fontSize: 15 },
+  deleteText: { color: colors.dangerStrong, fontFamily: fonts.bodySemiBold, fontSize: 15 },
   readOnlyBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -258,5 +299,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     marginBottom: spacing.md,
   },
-  readOnlyText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
+  readOnlyText: { fontSize: 13, color: colors.textMuted, fontFamily: fonts.bodySemiBold },
 });

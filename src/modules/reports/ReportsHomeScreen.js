@@ -6,7 +6,7 @@ import Screen from '../../components/Screen';
 import ScreenHeader, { HEADER_HEIGHT } from '../../components/ScreenHeader';
 import PressableScale from '../../components/PressableScale';
 import { GlassCard } from '../../components/Glass';
-import { colors, spacing } from '../../theme';
+import { colors, spacing, fonts } from '../../theme';
 import { enter } from '../../theme/motion';
 import { REPORTS } from './reports';
 
@@ -62,5 +62,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: spacing.md,
   },
-  rowLabel: { flex: 1, fontSize: 15, color: colors.text, fontWeight: '500' },
+  rowLabel: { flex: 1, fontSize: 15, color: colors.text, fontFamily: fonts.bodyMedium },
 });

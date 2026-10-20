@@ -12,7 +12,7 @@ import EmptyState from '../../components/EmptyState';
 import Icon from '../../components/Icon';
 import { useFeedback } from '../../components/Feedback';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, radius, spacing } from '../../theme';
+import { colors, radius, spacing, fonts } from '../../theme';
 import { useAuth } from '../../context/AuthContext';
 import { ENTITIES, LOOKUPS, itemOf, nameOf, toOptions } from './entities';
 
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     marginBottom: spacing.sm,
   },
-  readOnlyText: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
+  readOnlyText: { fontSize: 13, color: colors.textMuted, fontFamily: fonts.bodySemiBold },
   footer: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

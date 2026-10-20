@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: spacing.lg, paddingTop: HEADER_HEIGHT + spacing.sm, paddingBottom: 190 },
   sectionTitle: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     color: colors.textMuted,
     marginTop: spacing.md,
     marginBottom: 4,
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
   },
   row: { flexDirection: 'row', gap: spacing.sm },
   cell: { flex: 1 },
-  deliveryLabel: { fontSize: 12, fontWeight: '600', color: colors.textMuted, marginBottom: 4, marginLeft: spacing.xs },
+  deliveryLabel: { fontSize: 12, fontFamily: fonts.bodySemiBold, color: colors.textMuted, marginBottom: 4, marginLeft: spacing.xs },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -441,9 +441,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  productName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  productName: { fontSize: 14, fontFamily: fonts.bodySemiBold, color: colors.text },
   productPrice: { fontSize: 12, color: colors.textMuted, marginTop: 1 },
-  outOfStock: { color: colors.dangerStrong, fontWeight: '600' },
+  outOfStock: { color: colors.dangerStrong, fontFamily: fonts.bodySemiBold },
   plusBtn: {
     width: 28,
     height: 28,
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     marginBottom: spacing.xs,
   },
-  cartName: { flex: 1, color: colors.ink, fontSize: 14, fontWeight: '600' },
+  cartName: { flex: 1, color: colors.ink, fontSize: 14, fontFamily: fonts.bodySemiBold },
   qty: { minWidth: 22, textAlign: 'center', fontFamily: fonts.display, color: colors.ink },
   lineTotal: { minWidth: 60, textAlign: 'right', fontFamily: fonts.display, color: colors.ink },
   checkoutBar: {
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
   cartErrorText: {
     color: colors.dangerStrong,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: fonts.bodySemiBold,
     marginBottom: spacing.sm,
     textAlign: 'center',
   },
